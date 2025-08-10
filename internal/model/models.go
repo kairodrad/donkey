@@ -3,6 +3,7 @@ package model
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"time"
 )
 
 // User represents a player in the system.
@@ -32,11 +33,12 @@ type GameState struct {
 
 // GamePlayer associates a user with a game and their hand.
 type GamePlayer struct {
-	GameID    string `gorm:"primaryKey;size:32"`
-	UserID    string `gorm:"primaryKey;size:32"`
-	JoinOrder int
-	User      User
-	Cards     []GameCard `gorm:"foreignKey:GameID,UserID;references:GameID,UserID"`
+	GameID      string `gorm:"primaryKey;size:32"`
+	UserID      string `gorm:"primaryKey;size:32"`
+	JoinOrder   int
+	User        User
+	IsConnected bool
+	Cards       []GameCard `gorm:"foreignKey:GameID,UserID;references:GameID,UserID"`
 }
 
 // GameCard represents a single card assigned to a player in a game.
@@ -45,6 +47,16 @@ type GameCard struct {
 	GameID string `gorm:"size:32"`
 	UserID string `gorm:"size:32"`
 	Code   string `gorm:"size:3"`
+}
+
+// SessionLog records chat and status updates for a game.
+type SessionLog struct {
+	ID        string `gorm:"primaryKey;size:32"`
+	GameID    string `gorm:"size:32;index"`
+	UserID    string `gorm:"size:32"`
+	Type      string `gorm:"size:10"`
+	Message   string `gorm:"not null"`
+	CreatedAt time.Time
 }
 
 // NewID generates a random hexadecimal ID.

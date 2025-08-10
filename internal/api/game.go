@@ -51,6 +51,10 @@ func StartGameHandler(c *gin.Context) {
 	db.DB.Create(&model.GameState{GameID: gameModel.ID})
 	gp := model.GamePlayer{GameID: gameModel.ID, UserID: req.RequesterID, JoinOrder: 0}
 	db.DB.Create(&gp)
+	var user model.User
+	db.DB.First(&user, "id = ?", req.RequesterID)
+	logAndSend(gameModel.ID, req.RequesterID, "status", user.Name+" created the game")
+	publishState(gameModel.ID)
 	c.JSON(http.StatusOK, gin.H{"gameId": gameModel.ID})
 }
 
@@ -95,6 +99,7 @@ func JoinGameHandler(c *gin.Context) {
 		db.DB.Save(&gameModel)
 		game.DealCards(&gameModel)
 	}
+	publishState(gameModel.ID)
 	c.JSON(http.StatusOK, gin.H{"gameId": gameModel.ID})
 }
 
@@ -130,6 +135,7 @@ func FinalizeHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	publishState(gameModel.ID)
 	c.JSON(http.StatusOK, gin.H{"gameId": gameModel.ID})
 }
 

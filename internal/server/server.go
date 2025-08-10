@@ -15,7 +15,7 @@ import (
 // New creates a new HTTP server with routes configured.
 func New() *gin.Engine {
 	game.VerifyAssets()
-	db.Init(&model.User{}, &model.Game{}, &model.GamePlayer{}, &model.GameCard{}, &model.GameState{})
+	db.Init(&model.User{}, &model.Game{}, &model.GamePlayer{}, &model.GameCard{}, &model.GameState{}, &model.SessionLog{})
 
 	r := gin.Default()
 	r.Static("/assets", "./web/assets")
@@ -28,6 +28,10 @@ func New() *gin.Engine {
 		apiGroup.POST("/game/start", api.StartGameHandler)
 		apiGroup.POST("/game/join", api.JoinGameHandler)
 		apiGroup.POST("/game/finalize", api.FinalizeHandler)
+		apiGroup.POST("/game/abandon", api.AbandonHandler)
+		apiGroup.POST("/game/chat", api.ChatHandler)
+		apiGroup.GET("/game/logs", api.LogsHandler)
+		apiGroup.GET("/game/stream", api.StreamHandler)
 		apiGroup.GET("/game/state", api.GameStateHandler)
 		apiGroup.GET("/version", api.VersionHandler)
 		apiGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
