@@ -33,6 +33,7 @@ func New() *gin.Engine {
 		apiGroup.GET("/game/logs", api.LogsHandler)
 		apiGroup.GET("/game/stream", api.StreamHandler)
 		apiGroup.GET("/game/state", api.GameStateHandler)
+		apiGroup.POST("/user/rename", api.RenameHandler)
 		apiGroup.GET("/version", api.VersionHandler)
 		apiGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}

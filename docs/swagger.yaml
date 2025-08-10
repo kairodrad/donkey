@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  api.RenameRequest:
+    properties:
+      gameId:
+        type: string
+      name:
+        type: string
+      userId:
+        type: string
+    type: object
   game.PlayerState:
     properties:
       cardCount:
@@ -19,11 +28,62 @@ definitions:
         type: string
       hasStarted:
         type: boolean
+      isAbandoned:
+        type: boolean
       players:
         items:
           $ref: '#/definitions/game.PlayerState'
         type: array
       requesterId:
+        type: string
+    type: object
+  model.Game:
+    properties:
+      hasStarted:
+        type: boolean
+      id:
+        type: string
+      isAbandoned:
+        type: boolean
+      isComplete:
+        type: boolean
+      players:
+        items:
+          $ref: '#/definitions/model.User'
+        type: array
+      requester:
+        $ref: '#/definitions/model.User'
+      requesterID:
+        type: string
+      state:
+        $ref: '#/definitions/model.GameState'
+    type: object
+  model.GameCard:
+    properties:
+      code:
+        type: string
+      gameID:
+        type: string
+      id:
+        type: string
+      userID:
+        type: string
+    type: object
+  model.GamePlayer:
+    properties:
+      cards:
+        items:
+          $ref: '#/definitions/model.GameCard'
+        type: array
+      gameID:
+        type: string
+      isConnected:
+        type: boolean
+      joinOrder:
+        type: integer
+      user:
+        $ref: '#/definitions/model.User'
+      userID:
         type: string
     type: object
   model.GameSessionLog:
@@ -39,6 +99,26 @@ definitions:
       type:
         type: string
       userId:
+        type: string
+    type: object
+  model.GameState:
+    properties:
+      gameID:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/model.GamePlayer'
+        type: array
+    type: object
+  model.User:
+    properties:
+      games:
+        items:
+          $ref: '#/definitions/model.Game'
+        type: array
+      id:
+        type: string
+      name:
         type: string
     type: object
 info:
@@ -132,6 +212,28 @@ paths:
       summary: Returns a greeting
       tags:
       - example
+  /api/user/rename:
+    post:
+      consumes:
+      - application/json
+      description: Update a user's name and notify the game if provided
+      parameters:
+      - description: rename request
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.RenameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+      summary: Rename user
+      tags:
+      - user
   /api/version:
     get:
       produces:

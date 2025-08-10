@@ -142,6 +142,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/user/rename": {
+            "post": {
+                "description": "Update a user's name and notify the game if provided",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Rename user",
+                "parameters": [
+                    {
+                        "description": "rename request",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.RenameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                }
+            }
+        },
         "/api/version": {
             "get": {
                 "produces": [
@@ -166,6 +200,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.RenameRequest": {
+            "type": "object",
+            "properties": {
+                "gameId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "game.PlayerState": {
             "type": "object",
             "properties": {
@@ -195,6 +243,9 @@ const docTemplate = `{
                 "hasStarted": {
                     "type": "boolean"
                 },
+                "isAbandoned": {
+                    "type": "boolean"
+                },
                 "players": {
                     "type": "array",
                     "items": {
@@ -202,6 +253,81 @@ const docTemplate = `{
                     }
                 },
                 "requesterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Game": {
+            "type": "object",
+            "properties": {
+                "hasStarted": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAbandoned": {
+                    "type": "boolean"
+                },
+                "isComplete": {
+                    "type": "boolean"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.User"
+                    }
+                },
+                "requester": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "requesterID": {
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/model.GameState"
+                }
+            }
+        },
+        "model.GameCard": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "gameID": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GamePlayer": {
+            "type": "object",
+            "properties": {
+                "cards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.GameCard"
+                    }
+                },
+                "gameID": {
+                    "type": "string"
+                },
+                "isConnected": {
+                    "type": "boolean"
+                },
+                "joinOrder": {
+                    "type": "integer"
+                },
+                "user": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "userID": {
                     "type": "string"
                 }
             }
@@ -225,6 +351,37 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GameState": {
+            "type": "object",
+            "properties": {
+                "gameID": {
+                    "type": "string"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.GamePlayer"
+                    }
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "games": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Game"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

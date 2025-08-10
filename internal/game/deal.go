@@ -1,8 +1,6 @@
 package game
 
 import (
-	"sort"
-
 	"github.com/kairodrad/donkey/internal/db"
 	"github.com/kairodrad/donkey/internal/model"
 )
@@ -54,19 +52,21 @@ type StateResponse struct {
 	RequesterID string        `json:"requesterId"`
 	Players     []PlayerState `json:"players"`
 	HasStarted  bool          `json:"hasStarted"`
+	IsAbandoned bool          `json:"isAbandoned"`
 }
 
 // BuildState builds a StateResponse for a given game and user.
 func BuildState(gameID, userID string) (StateResponse, error) {
 	var game model.Game
-	if err := db.DB.Preload("State.Players.User").Preload("State.Players.Cards").First(&game, "id = ?", gameID).Error; err != nil {
+	if err := db.DB.First(&game, "id = ?", gameID).Error; err != nil {
+		return StateResponse{}, err
+	}
+	var players []model.GamePlayer
+	if err := db.DB.Preload("User").Preload("Cards").Where("game_id = ?", gameID).Order("join_order asc").Find(&players).Error; err != nil {
 		return StateResponse{}, err
 	}
 
-	resp := StateResponse{GameID: game.ID, RequesterID: game.RequesterID, HasStarted: game.HasStarted}
-
-	players := game.State.Players
-	sort.Slice(players, func(i, j int) bool { return players[i].JoinOrder < players[j].JoinOrder })
+	resp := StateResponse{GameID: game.ID, RequesterID: game.RequesterID, HasStarted: game.HasStarted, IsAbandoned: game.IsAbandoned}
 
 	for _, p := range players {
 		ps := PlayerState{ID: p.UserID, Name: p.User.Name}

@@ -80,6 +80,10 @@ function App(){
     fetch('/api/game/abandon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id})})
       .then(()=>{setGameId(null);setState(null);setLogs([]);window.history.replaceState(null,'','/');});
   }
+  function rename(newName){
+    fetch('/api/user/rename',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:user.id,gameId,name:newName})})
+      .then(r=>r.json()).then(d=>{setUser({...user,name:d.name});setCookie('userName',d.name);});
+  }
   function openAbout(){
     fetch('/api/version').then(r=>r.json()).then(d=>setVersion(d.version));
     setShowAbout(true);
@@ -118,7 +122,7 @@ function App(){
       state && !state.hasStarted && !isRequester && React.createElement('div',null,'Awaiting Creator to start the game...'),
       state && renderPlayers()
     ]),
-    showSettings && React.createElement(SettingsModal,{theme,setTheme,backColor,setBackColor,onClose:()=>setShowSettings(false)}),
+    showSettings && React.createElement(SettingsModal,{theme,setTheme,backColor,setBackColor,user,onRename:rename,onClose:()=>setShowSettings(false)}),
     showHelp && React.createElement(HelpModal,{onClose:()=>setShowHelp(false)}),
     showAbout && React.createElement(AboutModal,{version,onClose:()=>setShowAbout(false)}),
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),
