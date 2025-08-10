@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,7 +19,12 @@ type RegisterRequest struct {
 // RegisterHandler registers a new user.
 func RegisterHandler(c *gin.Context) {
 	var req RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil || req.Name == "" {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid name"})
+		return
+	}
+	req.Name = strings.TrimSpace(req.Name)
+	if req.Name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid name"})
 		return
 	}

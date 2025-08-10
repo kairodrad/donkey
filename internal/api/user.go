@@ -15,17 +15,8 @@ type RenameRequest struct {
 	Name   string `json:"name"`
 }
 
-// RenameHandler updates a user's display name.
-//
-// @Summary      Rename user
-// @Description  Update a user's name and notify the game if provided
-// @Tags         user
-// @Accept       json
-// @Produce      json
-// @Param        id    path  string         true  "user id"
-// @Param        data  body  RenameRequest  true  "rename request"
-// @Success      200  {object}  model.User
-// @Router       /api/user/{id}/rename [post]
+// RenameHandler updates a user's display name. This endpoint is used internally and is
+// intentionally undocumented in Swagger.
 func RenameHandler(c *gin.Context) {
 	userID := c.Param("id")
 	var req RenameRequest
@@ -49,4 +40,36 @@ func RenameHandler(c *gin.Context) {
 		publishState(req.GameID)
 	}
 	c.JSON(http.StatusOK, gin.H{"id": user.ID, "name": user.Name})
+}
+
+// GetUserHandler returns a user by ID.
+//
+// @Summary      Get user
+// @Tags         user
+// @Produce      json
+// @Param        id  path  string  true  "user id"
+// @Success      200  {object}  model.User
+// @Failure      404  {object}  map[string]string
+// @Router       /api/user/{id} [get]
+func GetUserHandler(c *gin.Context) {
+	id := c.Param("id")
+	var user model.User
+	if err := db.DB.First(&user, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+// ListUsersHandler returns all registered users.
+//
+// @Summary      List users
+// @Tags         user
+// @Produce      json
+// @Success      200  {array}  model.User
+// @Router       /api/users [get]
+func ListUsersHandler(c *gin.Context) {
+	var users []model.User
+	db.DB.Find(&users)
+	c.JSON(http.StatusOK, users)
 }

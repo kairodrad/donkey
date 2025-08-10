@@ -171,19 +171,15 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/user/{id}/rename": {
-            "post": {
-                "description": "Update a user's name and notify the game if provided",
-                "consumes": [
-                    "application/json"
-                ],
+        "/api/user/{id}": {
+            "get": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "user"
                 ],
-                "summary": "Rename user",
+                "summary": "Get user",
                 "parameters": [
                     {
                         "type": "string",
@@ -191,15 +187,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "rename request",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.RenameRequest"
-                        }
                     }
                 ],
                 "responses": {
@@ -207,6 +194,37 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "List users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.User"
+                            }
                         }
                     }
                 }
@@ -236,17 +254,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.RenameRequest": {
-            "type": "object",
-            "properties": {
-                "gameId": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "game.PlayerState": {
             "type": "object",
             "properties": {

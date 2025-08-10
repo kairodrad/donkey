@@ -1,12 +1,5 @@
 basePath: /
 definitions:
-  api.RenameRequest:
-    properties:
-      gameId:
-        type: string
-      name:
-        type: string
-    type: object
   game.PlayerState:
     properties:
       cardCount:
@@ -229,23 +222,14 @@ paths:
       summary: Returns a greeting
       tags:
       - example
-  /api/user/{id}/rename:
-    post:
-      consumes:
-      - application/json
-      description: Update a user's name and notify the game if provided
+  /api/user/{id}:
+    get:
       parameters:
       - description: user id
         in: path
         name: id
         required: true
         type: string
-      - description: rename request
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/api.RenameRequest'
       produces:
       - application/json
       responses:
@@ -253,7 +237,27 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.User'
-      summary: Rename user
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user
+      tags:
+      - user
+  /api/users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+      summary: List users
       tags:
       - user
   /api/version:
