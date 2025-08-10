@@ -47,7 +47,7 @@ function App(){
     es.onmessage=e=>{
       const data=JSON.parse(e.data);
       if(data.type==='state') fetchState();
-      if(data.type==='log') setLogs(l=>[...l,data.log]);
+      if(data.type==='log') setLogs(l=>[data.log,...l]);
     };
     return ()=>{es.close();setConnected(false);};
   },[gameId,user.id,connKey]);
@@ -82,8 +82,9 @@ function App(){
     setShowAbout(true);
   }
   function sendChat(){
-    if(!chat) return;
-    fetch('/api/game/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id,message:chat})});
+    const msg=chat.trim();
+    if(!msg) return;
+    fetch('/api/game/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id,message:msg})});
     setChat('');
   }
 
@@ -106,7 +107,6 @@ function App(){
     ]),
     React.createElement('h1',{className:'text-3xl font-bold text-center mt-4'},'DONKEY'),
     React.createElement('div',{className:'p-4 mt-8 space-y-4'},[
-      user.name && React.createElement('div',null,`Welcome, ${user.name}`),
       state && !state.hasStarted && isRequester &&
         React.createElement('button',{
           className:`px-3 py-1 bg-green-200 dark:bg-green-700 text-black dark:text-white rounded ${state.players.length>1?'':'opacity-50 cursor-not-allowed'}`,
@@ -130,11 +130,11 @@ function App(){
         showLog?[
           React.createElement('div',{className:'h-24 overflow-y-auto px-2 text-sm'},logs.map(l=>React.createElement('div',{key:l.id},l.message))),
           React.createElement('div',{className:'flex border-t'},[
-            React.createElement('input',{className:'flex-grow p-1 bg-white text-black dark:bg-gray-700 dark:text-white',value:chat,onChange:e=>setChat(e.target.value),onKeyDown:e=>{if(e.key==='Enter')sendChat();}}),
+            React.createElement('input',{className:'flex-grow p-1 bg-white text-black dark:bg-gray-700 dark:text-white',value:chat,maxLength:128,onChange:e=>setChat(e.target.value),onKeyDown:e=>{if(e.key==='Enter')sendChat();}}),
             React.createElement('button',{className:'px-2',onClick:sendChat},'Send')
           ])
         ]:
-          React.createElement('div',{className:'px-2 py-1 text-sm truncate'},logs.length?logs[logs.length-1].message:'')
+          React.createElement('div',{className:'px-2 py-1 text-sm truncate'},logs.length?logs[0].message:'')
       ])
     ])
   ]);

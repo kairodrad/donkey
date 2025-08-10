@@ -49,8 +49,8 @@ type GameCard struct {
 	Code   string `gorm:"size:3"`
 }
 
-// SessionLog records chat and status updates for a game.
-type SessionLog struct {
+// GameSessionLog records chat and status updates for a game.
+type GameSessionLog struct {
 	ID        string `gorm:"primaryKey;size:32"`
 	GameID    string `gorm:"size:32;index"`
 	UserID    string `gorm:"size:32"`

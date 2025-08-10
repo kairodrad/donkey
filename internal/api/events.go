@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"html"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,8 +16,8 @@ import (
 )
 
 type event struct {
-	Type string            `json:"type"`
-	Log  *model.SessionLog `json:"log,omitempty"`
+	Type string                `json:"type"`
+	Log  *model.GameSessionLog `json:"log,omitempty"`
 }
 
 type broker struct {
@@ -61,7 +63,7 @@ func (br *broker) publish(gameID string, ev event) {
 }
 
 func logAndSend(gameID, userID, typ, message string) {
-	entry := model.SessionLog{ID: model.NewID(), GameID: gameID, UserID: userID, Type: typ, Message: message, CreatedAt: time.Now()}
+	entry := model.GameSessionLog{ID: model.NewID(), GameID: gameID, UserID: userID, Type: typ, Message: message, CreatedAt: time.Now()}
 	db.DB.Create(&entry)
 	b.publish(gameID, event{Type: "log", Log: &entry})
 }
@@ -112,9 +114,19 @@ func ChatHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid"})
 		return
 	}
+	msg := strings.TrimSpace(req.Message)
+	if msg == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid"})
+		return
+	}
+	runes := []rune(msg)
+	if len(runes) > 128 {
+		msg = string(runes[:128])
+	}
+	msg = html.EscapeString(msg)
 	var user model.User
 	db.DB.First(&user, "id = ?", req.UserID)
-	logAndSend(req.GameID, req.UserID, "chat", user.Name+": "+req.Message)
+	logAndSend(req.GameID, req.UserID, "chat", user.Name+": "+msg)
 	c.Status(http.StatusOK)
 }
 
@@ -125,8 +137,8 @@ func LogsHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing"})
 		return
 	}
-	var logs []model.SessionLog
-	db.DB.Where("game_id = ?", gameID).Order("created_at asc").Find(&logs)
+	var logs []model.GameSessionLog
+	db.DB.Where("game_id = ?", gameID).Order("created_at desc").Find(&logs)
 	c.JSON(http.StatusOK, logs)
 }
 

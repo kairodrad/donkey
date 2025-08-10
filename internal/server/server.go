@@ -15,7 +15,7 @@ import (
 // New creates a new HTTP server with routes configured.
 func New() *gin.Engine {
 	game.VerifyAssets()
-	db.Init(&model.User{}, &model.Game{}, &model.GamePlayer{}, &model.GameCard{}, &model.GameState{}, &model.SessionLog{})
+	db.Init(&model.User{}, &model.Game{}, &model.GamePlayer{}, &model.GameCard{}, &model.GameState{}, &model.GameSessionLog{})
 
 	r := gin.Default()
 	r.Static("/assets", "./web/assets")

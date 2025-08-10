@@ -93,6 +93,9 @@ func JoinGameHandler(c *gin.Context) {
 	}
 	gp := model.GamePlayer{GameID: gameModel.ID, UserID: req.UserID, JoinOrder: int(count)}
 	db.DB.Create(&gp)
+	var user model.User
+	db.DB.First(&user, "id = ?", req.UserID)
+	logAndSend(gameModel.ID, req.UserID, "status", user.Name+" joined the game")
 	// auto finalize if 8 players
 	if count+1 >= 8 {
 		gameModel.HasStarted = true
