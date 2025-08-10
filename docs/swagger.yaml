@@ -1,0 +1,23 @@
+basePath: /
+info:
+  contact: {}
+  description: API for the Donkey card game
+  title: Donkey API
+  version: "1.0"
+paths:
+  /api/hello:
+    get:
+      description: Simple hello world endpoint
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Returns a greeting
+      tags:
+      - example
+swagger: "2.0"
