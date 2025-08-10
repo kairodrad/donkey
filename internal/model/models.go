@@ -8,21 +8,21 @@ import (
 
 // User represents a player in the system.
 type User struct {
-	ID    string `gorm:"primaryKey;size:32"`
-	Name  string `gorm:"size:20;not null"`
-	Games []Game `gorm:"many2many:game_players;"`
+	ID    string `gorm:"primaryKey;size:32" json:"id"`
+	Name  string `gorm:"size:20;not null" json:"name"`
+	Games []Game `gorm:"many2many:game_players;" json:"games"`
 }
 
 // Game represents a card game session.
 type Game struct {
-	ID          string `gorm:"primaryKey;size:32"`
-	RequesterID string
-	Requester   User
-	Players     []User `gorm:"many2many:game_players;"`
-	HasStarted  bool
-	IsComplete  bool
-	IsAbandoned bool
-	State       GameState `gorm:"foreignKey:GameID"`
+	ID          string    `gorm:"primaryKey;size:32" json:"id"`
+	RequesterID string    `json:"requesterId"`
+	Requester   User      `json:"-"`
+	Players     []User    `gorm:"many2many:game_players;" json:"-"`
+	HasStarted  bool      `json:"hasStarted"`
+	IsComplete  bool      `json:"isComplete"`
+	IsAbandoned bool      `json:"isAbandoned"`
+	State       GameState `gorm:"foreignKey:GameID" json:"-"`
 }
 
 // GameState holds dynamic information for a game.

@@ -160,3 +160,52 @@ func TestAdminState(t *testing.T) {
 		assert.Equal(t, 26, len(state.Players[1].Cards))
 	}
 }
+
+func TestUserEndpointsReturnUsersAndGames(t *testing.T) {
+	ts := httptest.NewServer(server.New())
+	defer ts.Close()
+	client := ts.Client()
+
+	// register a user
+	resp, _ := client.Post(ts.URL+"/api/register", "application/json", bytes.NewBufferString(`{"name":"Alice"}`))
+	var u map[string]string
+	json.NewDecoder(resp.Body).Decode(&u)
+
+	// user should be retrievable with no games initially
+	userResp, _ := client.Get(ts.URL + "/api/user/" + u["id"])
+	var initial struct {
+		Games []struct {
+			ID string `json:"id"`
+		} `json:"games"`
+	}
+	json.NewDecoder(userResp.Body).Decode(&initial)
+	assert.Equal(t, 0, len(initial.Games))
+
+	// list users should include this user
+	usersResp, _ := client.Get(ts.URL + "/api/users")
+	var users []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+	json.NewDecoder(usersResp.Body).Decode(&users)
+	found := false
+	for _, usr := range users {
+		if usr.ID == u["id"] && usr.Name == "Alice" {
+			found = true
+		}
+	}
+	assert.True(t, found)
+
+	// start a game for this user
+	client.Post(ts.URL+"/api/game/start", "application/json", bytes.NewBufferString(`{"requesterId":"`+u["id"]+`"}`))
+
+	// fetch user and ensure game appears
+	userResp, _ = client.Get(ts.URL + "/api/user/" + u["id"])
+	var after struct {
+		Games []struct {
+			ID string `json:"id"`
+		} `json:"games"`
+	}
+	json.NewDecoder(userResp.Body).Decode(&after)
+	assert.Equal(t, 1, len(after.Games))
+}

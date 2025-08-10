@@ -54,7 +54,7 @@ func RenameHandler(c *gin.Context) {
 func GetUserHandler(c *gin.Context) {
 	id := c.Param("id")
 	var user model.User
-	if err := db.DB.First(&user, "id = ?", id).Error; err != nil {
+	if err := db.DB.Preload("Games").First(&user, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
@@ -70,6 +70,6 @@ func GetUserHandler(c *gin.Context) {
 // @Router       /api/users [get]
 func ListUsersHandler(c *gin.Context) {
 	var users []model.User
-	db.DB.Find(&users)
+	db.DB.Preload("Games").Find(&users)
 	c.JSON(http.StatusOK, users)
 }

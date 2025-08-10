@@ -312,62 +312,7 @@ const docTemplate = `{
                 "isComplete": {
                     "type": "boolean"
                 },
-                "players": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.User"
-                    }
-                },
-                "requester": {
-                    "$ref": "#/definitions/model.User"
-                },
-                "requesterID": {
-                    "type": "string"
-                },
-                "state": {
-                    "$ref": "#/definitions/model.GameState"
-                }
-            }
-        },
-        "model.GameCard": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "gameID": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "userID": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.GamePlayer": {
-            "type": "object",
-            "properties": {
-                "cards": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.GameCard"
-                    }
-                },
-                "gameID": {
-                    "type": "string"
-                },
-                "isConnected": {
-                    "type": "boolean"
-                },
-                "joinOrder": {
-                    "type": "integer"
-                },
-                "user": {
-                    "$ref": "#/definitions/model.User"
-                },
-                "userID": {
+                "requesterId": {
                     "type": "string"
                 }
             }
@@ -392,20 +337,6 @@ const docTemplate = `{
                 },
                 "userId": {
                     "type": "string"
-                }
-            }
-        },
-        "model.GameState": {
-            "type": "object",
-            "properties": {
-                "gameID": {
-                    "type": "string"
-                },
-                "players": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.GamePlayer"
-                    }
                 }
             }
         },
