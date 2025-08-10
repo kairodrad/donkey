@@ -1,4 +1,4 @@
-import React from 'react';
+const React = window.React;
 
 export function RegistrationModal({onSubmit}){
   const [name,setName]=React.useState('');

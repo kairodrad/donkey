@@ -29,6 +29,7 @@ func New() *gin.Engine {
 		apiGroup.POST("/game/join", api.JoinGameHandler)
 		apiGroup.POST("/game/finalize", api.FinalizeHandler)
 		apiGroup.GET("/game/state", api.GameStateHandler)
+		apiGroup.GET("/version", api.VersionHandler)
 		apiGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
