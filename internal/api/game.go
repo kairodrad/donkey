@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +22,7 @@ func RegisterHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid name"})
 		return
 	}
-	user := model.User{Name: req.Name}
+	user := model.User{ID: model.NewID(), Name: req.Name}
 	if err := db.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -33,17 +32,17 @@ func RegisterHandler(c *gin.Context) {
 
 // StartGameRequest represents body to start a game.
 type StartGameRequest struct {
-	RequesterID uint `json:"requesterId"`
+	RequesterID string `json:"requesterId"`
 }
 
 // StartGameHandler creates a new game.
 func StartGameHandler(c *gin.Context) {
 	var req StartGameRequest
-	if err := c.ShouldBindJSON(&req); err != nil || req.RequesterID == 0 {
+	if err := c.ShouldBindJSON(&req); err != nil || req.RequesterID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid requester"})
 		return
 	}
-	gameModel := model.Game{RequesterID: req.RequesterID}
+	gameModel := model.Game{ID: model.NewID(), RequesterID: req.RequesterID}
 	if err := db.DB.Create(&gameModel).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -57,19 +56,19 @@ func StartGameHandler(c *gin.Context) {
 
 // JoinGameRequest represents join body.
 type JoinGameRequest struct {
-	GameID uint `json:"gameId"`
-	UserID uint `json:"userId"`
+	GameID string `json:"gameId"`
+	UserID string `json:"userId"`
 }
 
 // JoinGameHandler adds a user to a game.
 func JoinGameHandler(c *gin.Context) {
 	var req JoinGameRequest
-	if err := c.ShouldBindJSON(&req); err != nil || req.GameID == 0 || req.UserID == 0 {
+	if err := c.ShouldBindJSON(&req); err != nil || req.GameID == "" || req.UserID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid join"})
 		return
 	}
 	var gameModel model.Game
-	if err := db.DB.First(&gameModel, req.GameID).Error; err != nil {
+	if err := db.DB.First(&gameModel, "id = ?", req.GameID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "game not found"})
 		return
 	}
@@ -101,8 +100,8 @@ func JoinGameHandler(c *gin.Context) {
 
 // FinalizeRequest finalizes players and deals cards.
 type FinalizeRequest struct {
-	GameID uint `json:"gameId"`
-	UserID uint `json:"userId"`
+	GameID string `json:"gameId"`
+	UserID string `json:"userId"`
 }
 
 // FinalizeHandler finalizes the game and deals cards.
@@ -113,7 +112,7 @@ func FinalizeHandler(c *gin.Context) {
 		return
 	}
 	var gameModel model.Game
-	if err := db.DB.First(&gameModel, req.GameID).Error; err != nil {
+	if err := db.DB.First(&gameModel, "id = ?", req.GameID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "game not found"})
 		return
 	}
@@ -136,19 +135,10 @@ func FinalizeHandler(c *gin.Context) {
 
 // GameStateHandler returns the state of a game for a user.
 func GameStateHandler(c *gin.Context) {
-	gameIDParam := c.Query("gameId")
-	userIDParam := c.Query("userId")
-	if gameIDParam == "" || userIDParam == "" {
+	gameID := c.Query("gameId")
+	userID := c.Query("userId")
+	if gameID == "" || userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing params"})
-		return
-	}
-	var gameID, userID uint
-	if _, err := fmt.Sscanf(gameIDParam, "%d", &gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid gameId"})
-		return
-	}
-	if _, err := fmt.Sscanf(userIDParam, "%d", &userID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid userId"})
 		return
 	}
 	state, err := game.BuildState(gameID, userID)

@@ -1,16 +1,21 @@
 package model
 
+import (
+	"crypto/rand"
+	"encoding/hex"
+)
+
 // User represents a player in the system.
 type User struct {
-	ID    uint   `gorm:"primaryKey"`
+	ID    string `gorm:"primaryKey;size:32"`
 	Name  string `gorm:"size:20;not null"`
 	Games []Game `gorm:"many2many:game_players;"`
 }
 
 // Game represents a card game session.
 type Game struct {
-	ID          uint `gorm:"primaryKey"`
-	RequesterID uint
+	ID          string `gorm:"primaryKey;size:32"`
+	RequesterID string
 	Requester   User
 	Players     []User `gorm:"many2many:game_players;"`
 	HasStarted  bool
@@ -21,14 +26,14 @@ type Game struct {
 
 // GameState holds dynamic information for a game.
 type GameState struct {
-	GameID  uint         `gorm:"primaryKey"`
+	GameID  string       `gorm:"primaryKey;size:32"`
 	Players []GamePlayer `gorm:"foreignKey:GameID"`
 }
 
 // GamePlayer associates a user with a game and their hand.
 type GamePlayer struct {
-	GameID    uint `gorm:"primaryKey"`
-	UserID    uint `gorm:"primaryKey"`
+	GameID    string `gorm:"primaryKey;size:32"`
+	UserID    string `gorm:"primaryKey;size:32"`
 	JoinOrder int
 	User      User
 	Cards     []GameCard `gorm:"foreignKey:GameID,UserID;references:GameID,UserID"`
@@ -36,8 +41,17 @@ type GamePlayer struct {
 
 // GameCard represents a single card assigned to a player in a game.
 type GameCard struct {
-	ID     uint `gorm:"primaryKey"`
-	GameID uint
-	UserID uint
+	ID     string `gorm:"primaryKey;size:32"`
+	GameID string `gorm:"size:32"`
+	UserID string `gorm:"size:32"`
 	Code   string `gorm:"size:3"`
+}
+
+// NewID generates a random hexadecimal ID.
+func NewID() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(b)
 }

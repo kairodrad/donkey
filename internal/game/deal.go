@@ -20,7 +20,7 @@ func DealCards(game *model.Game) error {
 		return nil
 	}
 
-	ids := make([]uint, len(players))
+	ids := make([]string, len(players))
 	requesterIdx := 0
 	for i, p := range players {
 		ids[i] = p.UserID
@@ -31,7 +31,7 @@ func DealCards(game *model.Game) error {
 
 	idx := (requesterIdx + 1) % len(ids)
 	for _, card := range deck {
-		gc := model.GameCard{GameID: game.ID, UserID: ids[idx], Code: string(card)}
+		gc := model.GameCard{ID: model.NewID(), GameID: game.ID, UserID: ids[idx], Code: string(card)}
 		if err := db.DB.Create(&gc).Error; err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ func DealCards(game *model.Game) error {
 
 // PlayerState represents what the UI needs to render for a player.
 type PlayerState struct {
-	ID        uint     `json:"id"`
+	ID        string   `json:"id"`
 	Name      string   `json:"name"`
 	Cards     []string `json:"cards,omitempty"`
 	CardCount int      `json:"cardCount,omitempty"`
@@ -50,16 +50,16 @@ type PlayerState struct {
 
 // StateResponse describes the game state returned to the client.
 type StateResponse struct {
-	GameID      uint          `json:"gameId"`
-	RequesterID uint          `json:"requesterId"`
+	GameID      string        `json:"gameId"`
+	RequesterID string        `json:"requesterId"`
 	Players     []PlayerState `json:"players"`
 	HasStarted  bool          `json:"hasStarted"`
 }
 
 // BuildState builds a StateResponse for a given game and user.
-func BuildState(gameID, userID uint) (StateResponse, error) {
+func BuildState(gameID, userID string) (StateResponse, error) {
 	var game model.Game
-	if err := db.DB.Preload("State.Players.User").Preload("State.Players.Cards").First(&game, gameID).Error; err != nil {
+	if err := db.DB.Preload("State.Players.User").Preload("State.Players.Cards").First(&game, "id = ?", gameID).Error; err != nil {
 		return StateResponse{}, err
 	}
 
