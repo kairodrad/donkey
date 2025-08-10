@@ -171,7 +171,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/user/rename": {
+        "/api/user/{id}/rename": {
             "post": {
                 "description": "Update a user's name and notify the game if provided",
                 "consumes": [
@@ -185,6 +185,13 @@ const docTemplate = `{
                 ],
                 "summary": "Rename user",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "rename request",
                         "name": "data",
@@ -236,9 +243,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "userId": {
                     "type": "string"
                 }
             }

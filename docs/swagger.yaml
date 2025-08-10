@@ -6,8 +6,6 @@ definitions:
         type: string
       name:
         type: string
-      userId:
-        type: string
     type: object
   game.PlayerState:
     properties:
@@ -231,12 +229,17 @@ paths:
       summary: Returns a greeting
       tags:
       - example
-  /api/user/rename:
+  /api/user/{id}/rename:
     post:
       consumes:
       - application/json
       description: Update a user's name and notify the game if provided
       parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: string
       - description: rename request
         in: body
         name: data

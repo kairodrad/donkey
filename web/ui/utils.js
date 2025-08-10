@@ -10,7 +10,7 @@ export function setCookie(name,value){
 }
 
 export function seats(players,currentUserId){
-  const pos=[{top:0,left:200},{top:50,left:350},{top:200,left:400},{top:350,left:350},{top:400,left:200},{top:350,left:50},{top:200,left:0},{top:50,left:50}];
+  const pos=[{top:20,left:200},{top:60,left:340},{top:200,left:380},{top:340,left:340},{top:380,left:200},{top:340,left:60},{top:200,left:20},{top:60,left:60}];
   const n=players.length;
   const start=players.findIndex(p=>p.id===currentUserId);
   const ordered=start>=0?players.slice(start).concat(players.slice(0,start)):players;

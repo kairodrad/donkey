@@ -5,6 +5,7 @@ import { HelpModal } from './help.js';
 import { AboutModal } from './about.js';
 import { ShareModal } from './share.js';
 import { AbandonedModal } from './abandoned.js';
+import { RenameModal } from './rename.js';
 const React = window.React;
 const ReactDOM = window.ReactDOM;
 
@@ -18,6 +19,7 @@ applyTheme(initialTheme);
 function App(){
   const params=new URLSearchParams(window.location.search);
   const gameIdParam=params.get('gameId');
+  if(gameIdParam) window.history.replaceState(null,'',window.location.pathname);
   const [user,setUser]=React.useState({id:getCookie('userId'),name:getCookie('userName')});
   const [gameId,setGameId]=React.useState(gameIdParam);
   const [state,setState]=React.useState(null);
@@ -35,6 +37,7 @@ function App(){
   const [chat,setChat]=React.useState('');
   const [connKey,setConnKey]=React.useState(0);
   const [showAbandoned,setShowAbandoned]=React.useState(false);
+  const [showRename,setShowRename]=React.useState(false);
 
   React.useEffect(()=>{setCookie('cardBack',backColor);},[backColor]);
   React.useEffect(()=>{setCookie('theme',theme);applyTheme(theme);},[theme]);
@@ -71,7 +74,7 @@ function App(){
   }
   function joinGame(gid){
     fetch('/api/game/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId:gid,userId:user.id})})
-      .then(()=>{setGameId(gid);});
+      .then(()=>{setGameId(gid);window.history.replaceState(null,'','/');});
   }
   function finalize(){
     fetch('/api/game/finalize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id})});
@@ -81,7 +84,7 @@ function App(){
       .then(()=>{setGameId(null);setState(null);setLogs([]);window.history.replaceState(null,'','/');});
   }
   function rename(newName){
-    fetch('/api/user/rename',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:user.id,gameId,name:newName})})
+    fetch(`/api/user/${user.id}/rename`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,name:newName})})
       .then(r=>r.json()).then(d=>{setUser({...user,name:d.name});setCookie('userName',d.name);});
   }
   function openAbout(){
@@ -98,7 +101,7 @@ function App(){
   const showShare = gameId && state && !state.hasStarted && !state.isAbandoned;
   const isRequester = state && state.requesterId==user.id;
 
-  return React.createElement('div',{className:'h-full'},[
+  return React.createElement('div',{className:'h-full flex flex-col items-center'},[
     React.createElement('nav',{className:'fixed top-0 left-0 p-2'},[
       React.createElement('div',{className:'relative'},[
         React.createElement('button',{className:'px-2 py-1 bg-blue-200 dark:bg-blue-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
@@ -106,6 +109,7 @@ function App(){
           (!gameId && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);startGame();}},'New Game')),
           (gameId && isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);abandon();}},'Abandon Game')),
           (gameId && !isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap opacity-50 cursor-not-allowed',disabled:true},'New Game')),
+          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowRename(true);}},'Update Player Name'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowSettings(true);}},'Settings'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowHelp(true);}},'Help'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
@@ -113,7 +117,7 @@ function App(){
       ])
     ]),
     React.createElement('h1',{className:'text-3xl font-bold text-center mt-4'},'DONKEY'),
-    React.createElement('div',{className:'p-4 mt-8 space-y-4'},[
+    React.createElement('div',{className:'p-4 mt-8 space-y-4 flex flex-col items-center'},[
       state && !state.hasStarted && isRequester &&
         React.createElement('button',{
           className:`px-3 py-1 bg-green-200 dark:bg-green-700 text-black dark:text-white rounded ${state.players.length>1?'':'opacity-50 cursor-not-allowed'}`,
@@ -123,6 +127,7 @@ function App(){
       state && renderPlayers()
     ]),
     showSettings && React.createElement(SettingsModal,{theme,setTheme,backColor,setBackColor,user,onRename:rename,onClose:()=>setShowSettings(false)}),
+    showRename && React.createElement(RenameModal,{currentName:user.name,onSubmit:rename,onClose:()=>setShowRename(false)}),
     showHelp && React.createElement(HelpModal,{onClose:()=>setShowHelp(false)}),
     showAbout && React.createElement(AboutModal,{version,onClose:()=>setShowAbout(false)}),
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),
@@ -150,8 +155,8 @@ function App(){
   function renderPlayers(){
     const playersWithSeats=seats(state.players,user.id);
     return React.createElement('div',{className:'relative w-[400px] h-[400px] mx-auto mt-4'},
-      playersWithSeats.map(p=>React.createElement('div',{key:p.id,style:{position:'absolute',top:p.seat.top,left:p.seat.left,textAlign:'center'}},[
-        React.createElement('div',{className:'font-semibold'},p.name),
+      playersWithSeats.map(p=>React.createElement('div',{key:p.id,className:'absolute flex flex-col items-center',style:{top:p.seat.top,left:p.seat.left,transform:'translate(-50%,-50%)'}},[
+        React.createElement('div',{className:'font-semibold mb-1'},p.name),
         state.hasStarted?renderCards(p):null
       ]))
     );
@@ -160,12 +165,12 @@ function App(){
   function renderCards(p){
     if(p.id==user.id){
       const cards=sortCards(p.cards);
-      return React.createElement('div',{className:'flex items-end h-28'},
-        cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-16 h-24 -ml-8 first:ml-0 relative hover:z-10 hover:-translate-y-2 hover:ml-0 transition-all'}))
+      return React.createElement('div',{className:'flex justify-center items-end h-28'},
+        cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-16 h-24 -ml-4 first:ml-0 relative hover:z-10 hover:-translate-y-2 hover:ml-0 transition-all'}))
       );
     }
-    return React.createElement('div',{className:'flex items-end'},
-      Array(p.cardCount).fill(0).map((_,i)=>React.createElement('img',{key:i,src:`/assets/${backColor}_back.png`,className:'w-8 h-12 -ml-4 first:ml-0'}))
+    return React.createElement('div',{className:'flex justify-center items-end'},
+      Array(p.cardCount).fill(0).map((_,i)=>React.createElement('img',{key:i,src:`/assets/${backColor}_back.png`,className:'w-8 h-12 -ml-2 first:ml-0'}))
     );
   }
 
