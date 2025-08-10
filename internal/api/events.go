@@ -73,6 +73,15 @@ func publishState(gameID string) {
 }
 
 // StreamHandler provides a long-lived stream of events for a game.
+//
+// @Summary      Stream game updates
+// @Description  Streams session and state change events for a game
+// @Tags         events
+// @Produce      text/event-stream
+// @Param        gameId  query  string  true  "Game ID"
+// @Param        userId  query  string  true  "User ID"
+// @Success      200  {string}  string  "event stream"
+// @Router       /api/game/stream [get]
 func StreamHandler(c *gin.Context) {
 	gameID := c.Query("gameId")
 	userID := c.Query("userId")
@@ -131,6 +140,14 @@ func ChatHandler(c *gin.Context) {
 }
 
 // LogsHandler returns existing session logs for a game.
+//
+// @Summary      List session logs
+// @Description  Retrieves chat and status logs for a game in reverse chronological order
+// @Tags         events
+// @Produce      json
+// @Param        gameId  query  string  true  "Game ID"
+// @Success      200  {array}  model.GameSessionLog
+// @Router       /api/game/logs [get]
 func LogsHandler(c *gin.Context) {
 	gameID := c.Query("gameId")
 	if gameID == "" {

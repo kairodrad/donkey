@@ -143,6 +143,15 @@ func FinalizeHandler(c *gin.Context) {
 }
 
 // GameStateHandler returns the state of a game for a user.
+//
+// @Summary      Get game state
+// @Description  Returns current game state tailored for the requesting user
+// @Tags         game
+// @Produce      json
+// @Param        gameId  query  string  true  "Game ID"
+// @Param        userId  query  string  true  "User ID"
+// @Success      200  {object}  game.StateResponse
+// @Router       /api/game/state [get]
 func GameStateHandler(c *gin.Context) {
 	gameID := c.Query("gameId")
 	userID := c.Query("userId")

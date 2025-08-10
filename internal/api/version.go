@@ -9,6 +9,12 @@ import (
 )
 
 // VersionHandler returns the git tag version.
+//
+// @Summary      Get server version
+// @Tags         meta
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /api/version [get]
 func VersionHandler(c *gin.Context) {
 	cmd := exec.Command("git", "describe", "--tags", "--abbrev=0")
 	out, err := cmd.Output()

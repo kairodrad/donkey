@@ -51,12 +51,12 @@ type GameCard struct {
 
 // GameSessionLog records chat and status updates for a game.
 type GameSessionLog struct {
-	ID        string `gorm:"primaryKey;size:32"`
-	GameID    string `gorm:"size:32;index"`
-	UserID    string `gorm:"size:32"`
-	Type      string `gorm:"size:10"`
-	Message   string `gorm:"not null"`
-	CreatedAt time.Time
+	ID        string    `gorm:"primaryKey;size:32" json:"id"`
+	GameID    string    `gorm:"size:32;index" json:"gameId"`
+	UserID    string    `gorm:"size:32" json:"userId"`
+	Type      string    `gorm:"size:10" json:"type"`
+	Message   string    `gorm:"not null" json:"message"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 // NewID generates a random hexadecimal ID.
