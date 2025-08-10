@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/example/donkey/internal/db"
-	"github.com/example/donkey/internal/game"
-	"github.com/example/donkey/internal/model"
+	"github.com/kairodrad/donkey/internal/db"
+	"github.com/kairodrad/donkey/internal/game"
+	"github.com/kairodrad/donkey/internal/model"
 )
 
 // RegisterRequest is the request body for user registration.
@@ -95,7 +95,7 @@ func JoinGameHandler(c *gin.Context) {
 	db.DB.Create(&gp)
 	var user model.User
 	db.DB.First(&user, "id = ?", req.UserID)
-	logAndSend(gameModel.ID, req.UserID, "status", user.Name+" joined the game")
+	logAndSend(gameModel.ID, req.UserID, "status", user.Name+": joined the game")
 	// auto finalize if 8 players
 	if count+1 >= 8 {
 		gameModel.HasStarted = true

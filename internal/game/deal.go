@@ -3,8 +3,8 @@ package game
 import (
 	"sort"
 
-	"github.com/example/donkey/internal/db"
-	"github.com/example/donkey/internal/model"
+	"github.com/kairodrad/donkey/internal/db"
+	"github.com/kairodrad/donkey/internal/model"
 )
 
 // DealCards shuffles the deck and deals all cards to the players in the game.

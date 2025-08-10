@@ -1,15 +1,15 @@
 package server
 
 import (
-	_ "github.com/example/donkey/docs" // swagger docs
 	"github.com/gin-gonic/gin"
+	_ "github.com/kairodrad/donkey/docs" // swagger docs
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/example/donkey/internal/api"
-	"github.com/example/donkey/internal/db"
-	"github.com/example/donkey/internal/game"
-	"github.com/example/donkey/internal/model"
+	"github.com/kairodrad/donkey/internal/api"
+	"github.com/kairodrad/donkey/internal/db"
+	"github.com/kairodrad/donkey/internal/game"
+	"github.com/kairodrad/donkey/internal/model"
 )
 
 // New creates a new HTTP server with routes configured.

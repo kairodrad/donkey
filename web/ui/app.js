@@ -1,9 +1,10 @@
-import { backs, getCookie, setCookie, seats } from './utils.js';
+import { backs, getCookie, setCookie, seats, sortCards } from './utils.js';
 import { RegistrationModal } from './registration.js';
 import { SettingsModal } from './settings.js';
 import { HelpModal } from './help.js';
 import { AboutModal } from './about.js';
 import { ShareModal } from './share.js';
+import { AbandonedModal } from './abandoned.js';
 const React = window.React;
 const ReactDOM = window.ReactDOM;
 
@@ -33,12 +34,14 @@ function App(){
   const [showLog,setShowLog]=React.useState(true);
   const [chat,setChat]=React.useState('');
   const [connKey,setConnKey]=React.useState(0);
+  const [showAbandoned,setShowAbandoned]=React.useState(false);
 
   React.useEffect(()=>{setCookie('cardBack',backColor);},[backColor]);
   React.useEffect(()=>{setCookie('theme',theme);applyTheme(theme);},[theme]);
   React.useEffect(()=>{if(!(user.id && user.name)) setShowReg(true);},[user]);
   React.useEffect(()=>{if(gameIdParam && user.id){joinGame(gameIdParam);}},[user.id]);
   React.useEffect(()=>{if(gameId){fetchState();fetchLogs();}},[gameId]);
+  React.useEffect(()=>{if(state && state.isAbandoned){setShowAbandoned(true);}},[state]);
   React.useEffect(()=>{
     if(!gameId||!user.id) return;
     const es=new EventSource(`/api/game/stream?gameId=${gameId}&userId=${user.id}`);
@@ -75,7 +78,7 @@ function App(){
   }
   function abandon(){
     fetch('/api/game/abandon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id})})
-      .then(()=>{setGameId(null);setState(null);setLogs([]);});
+      .then(()=>{setGameId(null);setState(null);setLogs([]);window.history.replaceState(null,'','/');});
   }
   function openAbout(){
     fetch('/api/version').then(r=>r.json()).then(d=>setVersion(d.version));
@@ -120,6 +123,7 @@ function App(){
     showAbout && React.createElement(AboutModal,{version,onClose:()=>setShowAbout(false)}),
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),
     showReg && React.createElement(RegistrationModal,{onSubmit:register}),
+    showAbandoned && React.createElement(AbandonedModal,{onClose:closeAbandoned}),
     React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white`},connected?'Connected to game':'Disconnected'),
     gameId && React.createElement('div',{className:'fixed bottom-0 left-0 m-2 w-64'},[
       React.createElement('div',{className:'bg-white dark:bg-gray-800 text-black dark:text-white border rounded'},[
@@ -140,7 +144,7 @@ function App(){
   ]);
 
   function renderPlayers(){
-    const playersWithSeats=seats(state.players);
+    const playersWithSeats=seats(state.players,user.id);
     return React.createElement('div',{className:'relative w-[400px] h-[400px] mx-auto mt-4'},
       playersWithSeats.map(p=>React.createElement('div',{key:p.id,style:{position:'absolute',top:p.seat.top,left:p.seat.left,textAlign:'center'}},[
         React.createElement('div',{className:'font-semibold'},p.name),
@@ -150,10 +154,19 @@ function App(){
   }
 
   function renderCards(p){
-    const cards=p.id==user.id?p.cards:Array(p.cardCount).fill(`${backColor}_back`);
-    return React.createElement('div',{className:'flex'},
-      cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-8 h-12 -ml-4 first:ml-0'}))
+    if(p.id==user.id){
+      const cards=sortCards(p.cards);
+      return React.createElement('div',{className:'flex items-end h-28'},
+        cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-16 h-24 -ml-8 first:ml-0 relative hover:z-10 hover:-translate-y-2 hover:ml-0 transition-all'}))
+      );
+    }
+    return React.createElement('div',{className:'flex items-end'},
+      Array(p.cardCount).fill(0).map((_,i)=>React.createElement('img',{key:i,src:`/assets/${backColor}_back.png`,className:'w-8 h-12 -ml-4 first:ml-0'}))
     );
+  }
+
+  function closeAbandoned(){
+    setShowAbandoned(false);setGameId(null);setState(null);setLogs([]);window.history.replaceState(null,'','/');
   }
 }
 

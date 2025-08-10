@@ -11,8 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/example/donkey/internal/db"
-	"github.com/example/donkey/internal/model"
+	"github.com/kairodrad/donkey/internal/db"
+	"github.com/kairodrad/donkey/internal/model"
 )
 
 type event struct {
@@ -95,7 +95,7 @@ func StreamHandler(c *gin.Context) {
 	var user model.User
 	db.DB.First(&user, "id = ?", userID)
 	db.DB.Model(&model.GamePlayer{}).Where("game_id = ? AND user_id = ?", gameID, userID).Update("is_connected", true)
-	logAndSend(gameID, userID, "status", user.Name+" connected to the game")
+	logAndSend(gameID, userID, "status", user.Name+": connected to the game")
 
 	c.Stream(func(w io.Writer) bool {
 		select {
@@ -109,7 +109,7 @@ func StreamHandler(c *gin.Context) {
 	})
 
 	db.DB.Model(&model.GamePlayer{}).Where("game_id = ? AND user_id = ?", gameID, userID).Update("is_connected", false)
-	logAndSend(gameID, userID, "status", user.Name+" disconnected from the game")
+	logAndSend(gameID, userID, "status", user.Name+": disconnected from the game")
 }
 
 // ChatHandler records a chat message.

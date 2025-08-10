@@ -1,4 +1,4 @@
-module github.com/example/donkey
+module github.com/kairodrad/donkey
 
 go 1.24.3
 

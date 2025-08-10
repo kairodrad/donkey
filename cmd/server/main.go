@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/example/donkey/internal/server"
+	"github.com/kairodrad/donkey/internal/server"
 )
 
 // @title Donkey API
