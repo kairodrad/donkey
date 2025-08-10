@@ -1,22 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8" />
     <title>Donkey Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
 </head>
-<body>
-    <div id="root"></div>
-    <script type="text/javascript">
-        function App() {
-            const [message, setMessage] = React.useState('');
-            return React.createElement('div', null,
-                React.createElement('button', {onClick: () => setMessage('Hello World')}, 'Click Me'),
-                React.createElement('p', null, message)
-            );
-        }
-        ReactDOM.render(React.createElement(App), document.getElementById('root'));
-    </script>
+<body class="h-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+<div id="root" class="h-full"></div>
+<script type="module" src="/ui/app.js"></script>
 </body>
 </html>
