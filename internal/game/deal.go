@@ -83,3 +83,28 @@ func BuildState(gameID, userID string) (StateResponse, error) {
 	}
 	return resp, nil
 }
+
+// BuildAdminState returns full state exposing all player cards.
+func BuildAdminState(gameID string) (StateResponse, error) {
+	var game model.Game
+	if err := db.DB.First(&game, "id = ?", gameID).Error; err != nil {
+		return StateResponse{}, err
+	}
+	var players []model.GamePlayer
+	if err := db.DB.Preload("User").Preload("Cards").Where("game_id = ?", gameID).Order("join_order asc").Find(&players).Error; err != nil {
+		return StateResponse{}, err
+	}
+
+	resp := StateResponse{GameID: game.ID, RequesterID: game.RequesterID, HasStarted: game.HasStarted, IsAbandoned: game.IsAbandoned}
+	for _, p := range players {
+		ps := PlayerState{ID: p.UserID, Name: p.User.Name}
+		for _, c := range p.Cards {
+			ps.Cards = append(ps.Cards, c.Code)
+		}
+		if len(ps.Cards) == 0 {
+			ps.CardCount = len(p.Cards)
+		}
+		resp.Players = append(resp.Players, ps)
+	}
+	return resp, nil
+}

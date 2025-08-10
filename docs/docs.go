@@ -15,7 +15,36 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/game/logs": {
+        "/api/admin/game/{gameId}": {
+            "get": {
+                "description": "Returns complete game information with all player cards",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get full game state",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Game ID",
+                        "name": "gameId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/game.StateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/{gameId}/logs": {
             "get": {
                 "description": "Retrieves chat and status logs for a game in reverse chronological order",
                 "produces": [
@@ -30,7 +59,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Game ID",
                         "name": "gameId",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -47,7 +76,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/game/state": {
+        "/api/game/{gameId}/state/{userId}": {
             "get": {
                 "description": "Returns current game state tailored for the requesting user",
                 "produces": [
@@ -62,14 +91,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Game ID",
                         "name": "gameId",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "User ID",
                         "name": "userId",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -83,7 +112,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/game/stream": {
+        "/api/game/{gameId}/stream/{userId}": {
             "get": {
                 "description": "Streams session and state change events for a game",
                 "produces": [
@@ -98,14 +127,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Game ID",
                         "name": "gameId",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "User ID",
                         "name": "userId",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],

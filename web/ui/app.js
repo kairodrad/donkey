@@ -44,7 +44,7 @@ function App(){
   React.useEffect(()=>{if(state && state.isAbandoned){setShowAbandoned(true);}},[state]);
   React.useEffect(()=>{
     if(!gameId||!user.id) return;
-    const es=new EventSource(`/api/game/stream?gameId=${gameId}&userId=${user.id}`);
+    const es=new EventSource(`/api/game/${gameId}/stream/${user.id}`);
     es.onopen=()=>setConnected(true);
     es.onerror=()=>{setConnected(false);es.close();setTimeout(()=>setConnKey(k=>k+1),2000);};
     es.onmessage=e=>{
@@ -56,10 +56,10 @@ function App(){
   },[gameId,user.id,connKey]);
 
   function fetchState(){
-    fetch(`/api/game/state?gameId=${gameId}&userId=${user.id}`).then(r=>r.json()).then(setState);
+    fetch(`/api/game/${gameId}/state/${user.id}`).then(r=>r.json()).then(setState);
   }
   function fetchLogs(){
-    fetch(`/api/game/logs?gameId=${gameId}`).then(r=>r.json()).then(setLogs);
+    fetch(`/api/game/${gameId}/logs`).then(r=>r.json()).then(setLogs);
   }
   function register(name){
     fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})})

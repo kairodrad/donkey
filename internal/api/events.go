@@ -78,13 +78,13 @@ func publishState(gameID string) {
 // @Description  Streams session and state change events for a game
 // @Tags         events
 // @Produce      text/event-stream
-// @Param        gameId  query  string  true  "Game ID"
-// @Param        userId  query  string  true  "User ID"
+// @Param        gameId  path  string  true  "Game ID"
+// @Param        userId  path  string  true  "User ID"
 // @Success      200  {string}  string  "event stream"
-// @Router       /api/game/stream [get]
+// @Router       /api/game/{gameId}/stream/{userId} [get]
 func StreamHandler(c *gin.Context) {
-	gameID := c.Query("gameId")
-	userID := c.Query("userId")
+	gameID := c.Param("gameId")
+	userID := c.Param("userId")
 	if gameID == "" || userID == "" {
 		c.Status(http.StatusBadRequest)
 		return
@@ -94,6 +94,8 @@ func StreamHandler(c *gin.Context) {
 
 	var user model.User
 	db.DB.First(&user, "id = ?", userID)
+	var gameModel model.Game
+	db.DB.First(&gameModel, "id = ?", gameID)
 	db.DB.Model(&model.GamePlayer{}).Where("game_id = ? AND user_id = ?", gameID, userID).Update("is_connected", true)
 	logAndSend(gameID, userID, "status", user.Name+": connected to the game")
 
@@ -110,6 +112,11 @@ func StreamHandler(c *gin.Context) {
 
 	db.DB.Model(&model.GamePlayer{}).Where("game_id = ? AND user_id = ?", gameID, userID).Update("is_connected", false)
 	logAndSend(gameID, userID, "status", user.Name+": disconnected from the game")
+	if gameModel.RequesterID == userID {
+		db.DB.Model(&model.Game{}).Where("id = ?", gameID).Update("is_abandoned", true)
+		logAndSend(gameID, userID, "status", "Game was terminated because the creator disconnected")
+		publishState(gameID)
+	}
 }
 
 // ChatHandler records a chat message.
@@ -145,11 +152,11 @@ func ChatHandler(c *gin.Context) {
 // @Description  Retrieves chat and status logs for a game in reverse chronological order
 // @Tags         events
 // @Produce      json
-// @Param        gameId  query  string  true  "Game ID"
+// @Param        gameId  path  string  true  "Game ID"
 // @Success      200  {array}  model.GameSessionLog
-// @Router       /api/game/logs [get]
+// @Router       /api/game/{gameId}/logs [get]
 func LogsHandler(c *gin.Context) {
-	gameID := c.Query("gameId")
+	gameID := c.Param("gameId")
 	if gameID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing"})
 		return

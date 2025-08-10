@@ -150,18 +150,41 @@ func FinalizeHandler(c *gin.Context) {
 // @Description  Returns current game state tailored for the requesting user
 // @Tags         game
 // @Produce      json
-// @Param        gameId  query  string  true  "Game ID"
-// @Param        userId  query  string  true  "User ID"
+// @Param        gameId  path  string  true  "Game ID"
+// @Param        userId  path  string  true  "User ID"
 // @Success      200  {object}  game.StateResponse
-// @Router       /api/game/state [get]
+// @Router       /api/game/{gameId}/state/{userId} [get]
 func GameStateHandler(c *gin.Context) {
-	gameID := c.Query("gameId")
-	userID := c.Query("userId")
+	gameID := c.Param("gameId")
+	userID := c.Param("userId")
 	if gameID == "" || userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing params"})
 		return
 	}
 	state, err := game.BuildState(gameID, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, state)
+}
+
+// AdminStateHandler returns full state for debugging.
+//
+// @Summary      Get full game state
+// @Description  Returns complete game information with all player cards
+// @Tags         admin
+// @Produce      json
+// @Param        gameId  path  string  true  "Game ID"
+// @Success      200  {object}  game.StateResponse
+// @Router       /api/admin/game/{gameId} [get]
+func AdminStateHandler(c *gin.Context) {
+	gameID := c.Param("gameId")
+	if gameID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing"})
+		return
+	}
+	state, err := game.BuildAdminState(gameID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

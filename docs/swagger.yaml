@@ -127,13 +127,32 @@ info:
   title: Donkey API
   version: "1.0"
 paths:
-  /api/game/logs:
+  /api/admin/game/{gameId}:
+    get:
+      description: Returns complete game information with all player cards
+      parameters:
+      - description: Game ID
+        in: path
+        name: gameId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/game.StateResponse'
+      summary: Get full game state
+      tags:
+      - admin
+  /api/game/{gameId}/logs:
     get:
       description: Retrieves chat and status logs for a game in reverse chronological
         order
       parameters:
       - description: Game ID
-        in: query
+        in: path
         name: gameId
         required: true
         type: string
@@ -149,17 +168,17 @@ paths:
       summary: List session logs
       tags:
       - events
-  /api/game/state:
+  /api/game/{gameId}/state/{userId}:
     get:
       description: Returns current game state tailored for the requesting user
       parameters:
       - description: Game ID
-        in: query
+        in: path
         name: gameId
         required: true
         type: string
       - description: User ID
-        in: query
+        in: path
         name: userId
         required: true
         type: string
@@ -173,17 +192,17 @@ paths:
       summary: Get game state
       tags:
       - game
-  /api/game/stream:
+  /api/game/{gameId}/stream/{userId}:
     get:
       description: Streams session and state change events for a game
       parameters:
       - description: Game ID
-        in: query
+        in: path
         name: gameId
         required: true
         type: string
       - description: User ID
-        in: query
+        in: path
         name: userId
         required: true
         type: string
