@@ -84,8 +84,14 @@ function App(){
       .then(()=>{setGameId(null);setState(null);setLogs([]);window.history.replaceState(null,'','/');});
   }
   function rename(newName){
-    fetch(`/api/user/${user.id}/rename`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,name:newName})})
-      .then(r=>r.json()).then(d=>{setUser({...user,name:d.name});setCookie('userName',d.name);});
+    fetch(`/api/user/${user.id}/rename`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({gameId,name:newName})
+    })
+      .then(r=>{if(!r.ok) throw new Error('rename'); return r.json();})
+      .then(d=>{if(d && d.name){setUser(u=>({...u,name:d.name}));setCookie('userName',d.name);}})
+      .catch(()=>{});
   }
   function openAbout(){
     fetch('/api/version').then(r=>r.json()).then(d=>setVersion(d.version));
@@ -109,7 +115,7 @@ function App(){
           (!gameId && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);startGame();}},'New Game')),
           (gameId && isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);abandon();}},'Abandon Game')),
           (gameId && !isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap opacity-50 cursor-not-allowed',disabled:true},'New Game')),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowRename(true);}},'Update Player Name'),
+          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowRename(true);}},'Rename Player'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowSettings(true);}},'Settings'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowHelp(true);}},'Help'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
@@ -133,7 +139,9 @@ function App(){
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),
     showReg && React.createElement(RegistrationModal,{onSubmit:register}),
     showAbandoned && React.createElement(AbandonedModal,{onClose:closeAbandoned}),
-    React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white`},connected?'Connected to game':'Disconnected'),
+    React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white`},
+      user.name ? (connected?`Connected to game as ${user.name}`:`Disconnected as ${user.name}`) : (connected?'Connected':'Disconnected')
+    ),
     gameId && React.createElement('div',{className:'fixed bottom-0 left-0 m-2 w-64'},[
       React.createElement('div',{className:'bg-white dark:bg-gray-800 text-black dark:text-white border rounded'},[
         React.createElement('div',{className:'flex justify-between items-center px-2 py-1 border-b'},[
@@ -156,15 +164,15 @@ function App(){
     const playersWithSeats=seats(state.players,user.id);
     return React.createElement('div',{className:'relative w-[400px] h-[400px] mx-auto mt-4'},
       playersWithSeats.map(p=>React.createElement('div',{key:p.id,className:'absolute flex flex-col items-center',style:{top:p.seat.top,left:p.seat.left,transform:'translate(-50%,-50%)'}},[
-        React.createElement('div',{className:'font-semibold mb-1'},p.name),
-        state.hasStarted?renderCards(p):null
+        state.hasStarted?renderCards(p):null,
+        React.createElement('div',{className:'mt-1 font-semibold'},p.name)
       ]))
     );
   }
 
   function renderCards(p){
     if(p.id==user.id){
-      const cards=sortCards(p.cards);
+      const cards=sortCards(p.cards||[]);
       return React.createElement('div',{className:'flex justify-center items-end h-28'},
         cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-16 h-24 -ml-4 first:ml-0 relative hover:z-10 hover:-translate-y-2 hover:ml-0 transition-all'}))
       );
