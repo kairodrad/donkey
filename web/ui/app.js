@@ -135,9 +135,11 @@ function App(){
 
   const showShare = gameId && state && !state.hasStarted && !state.isAbandoned;
   const isRequester = state && state.requesterId==user.id;
+  const actualTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 
-  return React.createElement('div',{className:'h-full flex flex-col items-center'},[
-    React.createElement('nav',{className:'fixed top-0 left-0 p-2'},[
+  return React.createElement('div',{className:'h-full flex flex-col items-center relative bg-slate-100 dark:bg-slate-800'},[
+    React.createElement('img',{src:`/assets/donkey-background-${actualTheme}.png`,className:'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-full max-h-full opacity-20 pointer-events-none select-none'}),
+    React.createElement('nav',{className:'fixed top-0 left-0 p-2 z-10'},[
       React.createElement('div',{className:'relative'},[
         React.createElement('button',{className:'px-2 py-1 bg-blue-200 dark:bg-blue-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
         menuOpen && React.createElement('div',{className:'absolute mt-2 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow'},[
@@ -151,8 +153,10 @@ function App(){
         ])
       ])
     ]),
-    React.createElement('h1',{className:'text-3xl font-bold text-center mt-4'},'DONKEY'),
-    React.createElement('div',{className:'p-4 mt-8 space-y-4 flex flex-col items-center'},[
+    React.createElement('div',{className:'mt-4 w-full flex justify-center items-center h-12 bg-white dark:bg-gray-900 z-10'},[
+      React.createElement('img',{src:`/assets/donkey-title-${actualTheme}.png`,className:'h-full w-auto',alt:'Donkey title'})
+    ]),
+    React.createElement('div',{className:'p-4 mt-8 space-y-4 flex flex-col items-center z-10'},[
       state && !state.hasStarted && isRequester &&
         React.createElement('button',{
           className:`px-3 py-1 bg-green-200 dark:bg-green-700 text-black dark:text-white rounded ${state.players.length>1?'':'opacity-50 cursor-not-allowed'}`,
@@ -168,10 +172,10 @@ function App(){
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),
     showReg && React.createElement(RegistrationModal,{onSubmit:register}),
     showAbandoned && React.createElement(AbandonedModal,{onClose:closeAbandoned}),
-    React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white`},
+    React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white z-10`},
       user.name ? `${user.name}: ${connected?'Connected':'Disconnected'}` : (connected?'Connected':'Disconnected')
     ),
-    gameId && React.createElement('div',{className:'fixed bottom-0 left-0 m-2 w-64'},[
+    gameId && React.createElement('div',{className:'fixed bottom-0 left-0 m-2 w-64 z-10'},[
       React.createElement('div',{className:'bg-white dark:bg-gray-800 text-black dark:text-white border rounded'},[
         React.createElement('div',{className:'flex justify-between items-center px-2 py-1 border-b'},[
           React.createElement('span',null,'Session Updates'),
