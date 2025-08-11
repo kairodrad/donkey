@@ -202,11 +202,11 @@ function App(){
     if(p.id==user.id){
       const cards=sortCards(p.cards||[]);
       return React.createElement('div',{className:'flex justify-center items-end h-28'},
-        cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-16 h-24 -ml-4 first:ml-0 relative hover:z-10 hover:-translate-y-2 hover:ml-0 transition-all'}))
+        cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-16 h-24 -ml-12 first:ml-0 relative hover:z-10 hover:-translate-y-2 hover:ml-0 transition-all'}))
       );
     }
     return React.createElement('div',{className:'flex justify-center items-end'},
-      Array(p.cardCount).fill(0).map((_,i)=>React.createElement('img',{key:i,src:`/assets/${backColor}_back.png`,className:'w-8 h-12 -ml-2 first:ml-0'}))
+      Array(p.cardCount).fill(0).map((_,i)=>React.createElement('img',{key:i,src:`/assets/${backColor}_back.png`,className:'w-8 h-12 -ml-6 first:ml-0'}))
     );
   }
 
