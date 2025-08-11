@@ -1,4 +1,4 @@
-import { backs, getCookie, setCookie, seats, sortCards } from './utils.js';
+import { getCookie, setCookie, seats, sortCards } from './utils.js';
 import { RegistrationModal } from './registration.js';
 import { SettingsModal } from './settings.js';
 import { HelpModal } from './help.js';
@@ -17,9 +17,12 @@ const initialTheme=getCookie('theme')||'system';
 applyTheme(initialTheme);
 
 function App(){
-  const params=new URLSearchParams(window.location.search);
-  const gameIdParam=params.get('gameId');
-  if(gameIdParam) window.history.replaceState(null,'',window.location.pathname);
+  const gameIdRef=React.useRef(null);
+  if(gameIdRef.current===null){
+    const params=new URLSearchParams(window.location.search);
+    gameIdRef.current=params.get('gameId');
+    if(gameIdRef.current) window.history.replaceState(null,'',window.location.pathname);
+  }
   const [user,setUser]=React.useState({id:null,name:null});
   const [gameId,setGameId]=React.useState(null);
   const [state,setState]=React.useState(null);
@@ -78,7 +81,7 @@ function App(){
         setCookie('userId',d.id);
         setCookie('userName',d.name);
         setShowReg(false);
-        if(gameIdParam) joinGame(gameIdParam,d.id);
+        if(gameIdRef.current) joinGame(gameIdRef.current,d.id);
       });
   }
   function startGame(){
@@ -96,6 +99,11 @@ function App(){
       .then(()=>{setGameId(gid);window.history.replaceState(null,'','/');})
       .catch(()=>{});
   }
+  React.useEffect(()=>{
+    if(user.id && gameIdRef.current && !gameId){
+      joinGame(gameIdRef.current,user.id);
+    }
+  },[user.id,gameId]);
   function finalize(){
     fetch('/api/game/finalize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id})});
   }
