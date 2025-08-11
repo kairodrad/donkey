@@ -23,7 +23,6 @@ func New() *gin.Engine {
 
 	apiGroup := r.Group("/api")
 	{
-		apiGroup.GET("/hello", api.HelloHandler)
 		apiGroup.POST("/register", api.RegisterHandler)
 		apiGroup.POST("/game/start", api.StartGameHandler)
 		apiGroup.POST("/game/join", api.JoinGameHandler)
@@ -33,7 +32,7 @@ func New() *gin.Engine {
 		apiGroup.GET("/game/:gameId/logs", api.LogsHandler)
 		apiGroup.GET("/game/:gameId/stream/:userId", api.StreamHandler)
 		apiGroup.GET("/game/:gameId/state/:userId", api.GameStateHandler)
-		apiGroup.GET("/admin/game/:gameId", api.AdminStateHandler)
+		apiGroup.GET("/admin/game/:gameId/state", api.AdminStateHandler)
 		apiGroup.POST("/user/:id/rename", api.RenameHandler)
 		apiGroup.GET("/user/:id", api.GetUserHandler)
 		apiGroup.GET("/users", api.ListUsersHandler)

@@ -73,7 +73,7 @@ info:
   title: Donkey API
   version: "1.0"
 paths:
-  /api/admin/game/{gameId}:
+  /api/admin/game/{gameId}/state:
     get:
       description: Returns complete game information with all player cards
       parameters:
@@ -162,21 +162,6 @@ paths:
       summary: Stream game updates
       tags:
       - events
-  /api/hello:
-    get:
-      description: Simple hello world endpoint
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Returns a greeting
-      tags:
-      - example
   /api/user/{id}:
     get:
       parameters:

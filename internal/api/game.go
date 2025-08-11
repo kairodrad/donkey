@@ -189,7 +189,7 @@ func GameStateHandler(c *gin.Context) {
 // @Produce      json
 // @Param        gameId  path  string  true  "Game ID"
 // @Success      200  {object}  game.StateResponse
-// @Router       /api/admin/game/{gameId} [get]
+// @Router       /api/admin/game/{gameId}/state [get]
 func AdminStateHandler(c *gin.Context) {
 	gameID := c.Param("gameId")
 	if gameID == "" {

@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/admin/game/{gameId}": {
+        "/api/admin/game/{gameId}/state": {
             "get": {
                 "description": "Returns complete game information with all player cards",
                 "produces": [
@@ -143,29 +143,6 @@ const docTemplate = `{
                         "description": "event stream",
                         "schema": {
                             "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/hello": {
-            "get": {
-                "description": "Simple hello world endpoint",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "example"
-                ],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     }
                 }

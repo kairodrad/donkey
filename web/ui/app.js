@@ -73,7 +73,7 @@ function App(){
   }
   function register(name){
     fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})})
-      .then(r=>r.json()).then(d=>{setUser(d);setCookie('userId',d.id);setCookie('userName',d.name);setShowReg(false);if(gameIdParam) joinGame(gameIdParam);});
+      .then(r=>r.json()).then(d=>{setUser(d);setCookie('userId',d.id);setCookie('userName',d.name);setShowReg(false);if(gameIdParam) joinGame(gameIdParam,d.id);});
   }
   function startGame(){
     if(!user.id){setShowReg(true);return;}
@@ -82,9 +82,13 @@ function App(){
       .then(d=>{setGameId(d.gameId);})
       .catch(()=>{});
   }
-  function joinGame(gid){
-    fetch('/api/game/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId:gid,userId:user.id})})
-      .then(()=>{setGameId(gid);window.history.replaceState(null,'','/');});
+  function joinGame(gid,uid){
+    const id=uid||user.id;
+    if(!id) return;
+    fetch('/api/game/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId:gid,userId:id})})
+      .then(r=>{if(!r.ok) throw new Error('join');})
+      .then(()=>{setGameId(gid);window.history.replaceState(null,'','/');})
+      .catch(()=>{});
   }
   function finalize(){
     fetch('/api/game/finalize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id})});

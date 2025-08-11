@@ -32,6 +32,28 @@ func TestJoinCreatesSinglePlayerPerUser(t *testing.T) {
 	assert.Equal(t, 2, len(state.Players))
 }
 
+func TestJoinerVisibleInAdminStateBeforeFinalize(t *testing.T) {
+	ts := httptest.NewServer(server.New())
+	defer ts.Close()
+	client := ts.Client()
+	reg := func(name string) map[string]string {
+		resp, _ := client.Post(ts.URL+"/api/register", "application/json", bytes.NewBufferString(`{"name":"`+name+`"}`))
+		var u map[string]string
+		json.NewDecoder(resp.Body).Decode(&u)
+		return u
+	}
+	u1 := reg("A")
+	u2 := reg("B")
+	resp, _ := client.Post(ts.URL+"/api/game/start", "application/json", bytes.NewBufferString(`{"requesterId":"`+u1["id"]+`"}`))
+	var g map[string]string
+	json.NewDecoder(resp.Body).Decode(&g)
+	client.Post(ts.URL+"/api/game/join", "application/json", bytes.NewBufferString(`{"gameId":"`+g["gameId"]+`","userId":"`+u2["id"]+`"}`))
+	adminResp, _ := client.Get(ts.URL + "/api/admin/game/" + g["gameId"] + "/state")
+	var state struct{ Players []interface{} }
+	json.NewDecoder(adminResp.Body).Decode(&state)
+	assert.Equal(t, 2, len(state.Players))
+}
+
 func TestRegisterRejectsEmptyName(t *testing.T) {
 	ts := httptest.NewServer(server.New())
 	defer ts.Close()
@@ -159,7 +181,7 @@ func TestAdminState(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&g)
 	client.Post(ts.URL+"/api/game/join", "application/json", bytes.NewBufferString(`{"gameId":"`+g["gameId"]+`","userId":"`+u2["id"]+`"}`))
 	client.Post(ts.URL+"/api/game/finalize", "application/json", bytes.NewBufferString(`{"gameId":"`+g["gameId"]+`","userId":"`+u1["id"]+`"}`))
-	adminResp, _ := client.Get(ts.URL + "/api/admin/game/" + g["gameId"])
+	adminResp, _ := client.Get(ts.URL + "/api/admin/game/" + g["gameId"] + "/state")
 	var state struct {
 		Players []struct {
 			Cards []string `json:"cards"`
