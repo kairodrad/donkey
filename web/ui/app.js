@@ -21,7 +21,7 @@ function App(){
   const gameIdParam=params.get('gameId');
   if(gameIdParam) window.history.replaceState(null,'',window.location.pathname);
   const [user,setUser]=React.useState({id:null,name:null});
-  const [gameId,setGameId]=React.useState(gameIdParam);
+  const [gameId,setGameId]=React.useState(null);
   const [state,setState]=React.useState(null);
   const [backColor,setBackColor]=React.useState(getCookie('cardBack')||'red');
   const [theme,setTheme]=React.useState(initialTheme);
