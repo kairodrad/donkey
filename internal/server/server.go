@@ -1,6 +1,9 @@
 package server
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/kairodrad/donkey/docs" // swagger docs
 	swaggerFiles "github.com/swaggo/files"
@@ -18,6 +21,7 @@ func New() *gin.Engine {
 	db.Init(&model.User{}, &model.Game{}, &model.GamePlayer{}, &model.GameCard{}, &model.GameState{}, &model.GameSessionLog{})
 
 	r := gin.Default()
+	r.Use(logRequests())
 	r.Static("/assets", "./web/assets")
 	r.Static("/ui", "./web/ui")
 
@@ -45,4 +49,14 @@ func New() *gin.Engine {
 	})
 
 	return r
+}
+
+// logRequests logs basic request info for debugging.
+func logRequests() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if m := c.Request.Method; m == http.MethodGet || m == http.MethodPost || m == http.MethodPut {
+			log.Printf("%s %s", m, c.Request.URL.Path)
+		}
+		c.Next()
+	}
 }

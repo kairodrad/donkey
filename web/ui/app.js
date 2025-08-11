@@ -50,7 +50,7 @@ function App(){
       .catch(()=>{setShowReg(true);});
   },[]);
   React.useEffect(()=>{if(gameIdParam && user.id){joinGame(gameIdParam);}},[user.id]);
-  React.useEffect(()=>{if(gameId){fetchState();fetchLogs();}},[gameId]);
+  React.useEffect(()=>{if(gameId && user.id){fetchState();fetchLogs();}},[gameId,user.id]);
   React.useEffect(()=>{if(state && state.isAbandoned){setShowAbandoned(true);}},[state]);
   React.useEffect(()=>{
     if(!gameId||!user.id) return;

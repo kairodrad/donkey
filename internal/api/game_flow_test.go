@@ -32,6 +32,34 @@ func TestJoinCreatesSinglePlayerPerUser(t *testing.T) {
 	assert.Equal(t, 2, len(state.Players))
 }
 
+func TestJoinerReceivesStateWithUserID(t *testing.T) {
+	ts := httptest.NewServer(server.New())
+	defer ts.Close()
+	client := ts.Client()
+	reg := func(name string) map[string]string {
+		resp, _ := client.Post(ts.URL+"/api/register", "application/json", bytes.NewBufferString(`{"name":"`+name+`"}`))
+		var u map[string]string
+		json.NewDecoder(resp.Body).Decode(&u)
+		return u
+	}
+	u1 := reg("A")
+	u2 := reg("B")
+	resp, _ := client.Post(ts.URL+"/api/game/start", "application/json", bytes.NewBufferString(`{"requesterId":"`+u1["id"]+`"}`))
+	var g map[string]string
+	json.NewDecoder(resp.Body).Decode(&g)
+	client.Post(ts.URL+"/api/game/join", "application/json", bytes.NewBufferString(`{"gameId":"`+g["gameId"]+`","userId":"`+u2["id"]+`"}`))
+	stateResp, _ := client.Get(ts.URL + "/api/game/" + g["gameId"] + "/state/" + u2["id"])
+	var state struct {
+		Players []struct {
+			ID string `json:"id"`
+		}
+	}
+	json.NewDecoder(stateResp.Body).Decode(&state)
+	if assert.Equal(t, 2, len(state.Players)) {
+		assert.Equal(t, u2["id"], state.Players[1].ID)
+	}
+}
+
 func TestJoinerVisibleInAdminStateBeforeFinalize(t *testing.T) {
 	ts := httptest.NewServer(server.New())
 	defer ts.Close()
