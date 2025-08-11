@@ -15,16 +15,207 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/hello": {
+        "/api/admin/game/{gameId}/state": {
             "get": {
-                "description": "Simple hello world endpoint",
+                "description": "Returns complete game information with all player cards",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "example"
+                    "admin"
                 ],
-                "summary": "Returns a greeting",
+                "summary": "Get full game state",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Game ID",
+                        "name": "gameId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/game.StateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/{gameId}/logs": {
+            "get": {
+                "description": "Retrieves chat and status logs for a game in reverse chronological order",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "List session logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Game ID",
+                        "name": "gameId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.GameSessionLog"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/{gameId}/state/{userId}": {
+            "get": {
+                "description": "Returns current game state tailored for the requesting user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "Get game state",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Game ID",
+                        "name": "gameId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/game.StateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/{gameId}/stream/{userId}": {
+            "get": {
+                "description": "Streams session and state change events for a game",
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Stream game updates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Game ID",
+                        "name": "gameId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "event stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "List users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.User"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/version": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Get server version",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -35,6 +226,111 @@ const docTemplate = `{
                             }
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "game.PlayerState": {
+            "type": "object",
+            "properties": {
+                "cardCount": {
+                    "type": "integer"
+                },
+                "cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "game.StateResponse": {
+            "type": "object",
+            "properties": {
+                "gameId": {
+                    "type": "string"
+                },
+                "hasStarted": {
+                    "type": "boolean"
+                },
+                "isAbandoned": {
+                    "type": "boolean"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/game.PlayerState"
+                    }
+                },
+                "requesterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Game": {
+            "type": "object",
+            "properties": {
+                "hasStarted": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAbandoned": {
+                    "type": "boolean"
+                },
+                "isComplete": {
+                    "type": "boolean"
+                },
+                "requesterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GameSessionLog": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "gameId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "games": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Game"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         }
