@@ -24,6 +24,9 @@ func New() *gin.Engine {
 	r.Use(logRequests())
 	r.Static("/assets", "./web/assets")
 	r.Static("/ui", "./web/ui")
+	r.StaticFile("/favicon.ico", "./web/assets/favicon.ico")
+	r.StaticFile("/apple-touch-icon.png", "./web/assets/apple-touch-icon.png")
+	r.StaticFile("/apple-touch-icon-precomposed.png", "./web/assets/apple-touch-icon.png")
 
 	apiGroup := r.Group("/api")
 	{
