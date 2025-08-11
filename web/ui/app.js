@@ -41,6 +41,7 @@ function App(){
   const [connKey,setConnKey]=React.useState(0);
   const [showAbandoned,setShowAbandoned]=React.useState(false);
   const [showRename,setShowRename]=React.useState(false);
+  const [selectedCard,setSelectedCard]=React.useState(null);
 
   React.useEffect(()=>{setCookie('cardBack',backColor);},[backColor]);
   React.useEffect(()=>{setCookie('theme',theme);applyTheme(theme);},[theme]);
@@ -201,8 +202,24 @@ function App(){
   function renderCards(p){
     if(p.id==user.id){
       const cards=sortCards(p.cards||[]);
-      return React.createElement('div',{className:'flex justify-center items-end h-28'},
-        cards.map((c,i)=>React.createElement('img',{key:i,src:`/assets/${c}.png`,className:'w-16 h-24 -ml-12 first:ml-0 relative hover:z-10 hover:-translate-y-2 hover:ml-0 transition-all'}))
+      return React.createElement(
+        'div',
+        {className:'flex justify-center items-end h-32'},
+        cards.map((c,i)=>
+          React.createElement(
+            'div',
+            {
+              key:i,
+              onMouseEnter:()=>setSelectedCard(i),
+              className:`relative w-16 h-32 -ml-12 first:ml-0 transition-all ${selectedCard===i?'z-10':''}`
+            },
+            React.createElement('img',{
+              src:`/assets/${c}.png`,
+              className:`absolute bottom-0 w-16 h-24 transition-transform ${selectedCard===i?'-translate-y-2':''}`,
+              style:{pointerEvents:'none'}
+            })
+          )
+        )
       );
     }
     return React.createElement('div',{className:'flex justify-center items-end'},
