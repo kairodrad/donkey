@@ -72,8 +72,10 @@ function App(){
     fetch(`/api/game/${gameId}/logs`).then(r=>r.json()).then(setLogs);
   }
   function register(name){
-    fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})})
-      .then(r=>r.json()).then(d=>{setUser(d);setCookie('userId',d.id);setCookie('userName',d.name);setShowReg(false);if(gameIdParam) joinGame(gameIdParam,d.id);});
+    const body={name};
+    if(gameIdParam) body.gameId=gameIdParam;
+    fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(r=>r.json()).then(d=>{setUser(d);setCookie('userId',d.id);setCookie('userName',d.name);setShowReg(false);});
   }
   function startGame(){
     if(!user.id){setShowReg(true);return;}

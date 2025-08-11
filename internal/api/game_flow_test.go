@@ -3,6 +3,7 @@ package api_test
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -30,6 +31,49 @@ func TestJoinCreatesSinglePlayerPerUser(t *testing.T) {
 	var state struct{ Players []interface{} }
 	json.NewDecoder(stateResp.Body).Decode(&state)
 	assert.Equal(t, 2, len(state.Players))
+}
+
+func TestRegisterWithGameIDAutoJoins(t *testing.T) {
+	ts := httptest.NewServer(server.New())
+	defer ts.Close()
+	client := ts.Client()
+
+	// creator
+	resp, _ := client.Post(ts.URL+"/api/register", "application/json", bytes.NewBufferString(`{"name":"Host"}`))
+	var host map[string]string
+	json.NewDecoder(resp.Body).Decode(&host)
+	resp, _ = client.Post(ts.URL+"/api/game/start", "application/json", bytes.NewBufferString(`{"requesterId":"`+host["id"]+`"}`))
+	var g map[string]string
+	json.NewDecoder(resp.Body).Decode(&g)
+
+	// joiner registers with gameId
+	resp, _ = client.Post(ts.URL+"/api/register", "application/json", bytes.NewBufferString(`{"name":"Join","gameId":"`+g["gameId"]+`"}`))
+	var join map[string]string
+	json.NewDecoder(resp.Body).Decode(&join)
+
+	// ensure joined
+	stateResp, _ := client.Get(ts.URL + "/api/game/" + g["gameId"] + "/state/" + host["id"])
+	var state struct{ Players []struct{ ID string } }
+	json.NewDecoder(stateResp.Body).Decode(&state)
+	if assert.Equal(t, 2, len(state.Players)) {
+		assert.Equal(t, join["id"], state.Players[1].ID)
+	}
+
+	// connect stream to log connection
+	req, _ := http.NewRequest("GET", ts.URL+"/api/game/"+g["gameId"]+"/stream/"+join["id"], nil)
+	streamResp, _ := client.Do(req)
+	streamResp.Body.Close()
+
+	logsResp, _ := client.Get(ts.URL + "/api/game/" + g["gameId"] + "/logs")
+	var logs []struct{ Message string }
+	json.NewDecoder(logsResp.Body).Decode(&logs)
+	found := false
+	for _, l := range logs {
+		if l.Message == "Join: connected to the game" {
+			found = true
+		}
+	}
+	assert.True(t, found)
 }
 
 func TestJoinerReceivesStateWithUserID(t *testing.T) {
