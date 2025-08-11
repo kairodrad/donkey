@@ -20,12 +20,12 @@ function App(){
   const params=new URLSearchParams(window.location.search);
   const gameIdParam=params.get('gameId');
   if(gameIdParam) window.history.replaceState(null,'',window.location.pathname);
-  const [user,setUser]=React.useState({id:getCookie('userId'),name:getCookie('userName')});
+  const [user,setUser]=React.useState({id:null,name:null});
   const [gameId,setGameId]=React.useState(gameIdParam);
   const [state,setState]=React.useState(null);
   const [backColor,setBackColor]=React.useState(getCookie('cardBack')||'red');
   const [theme,setTheme]=React.useState(initialTheme);
-  const [showReg,setShowReg]=React.useState(!(user.id && user.name));
+  const [showReg,setShowReg]=React.useState(false);
   const [showSettings,setShowSettings]=React.useState(false);
   const [showHelp,setShowHelp]=React.useState(false);
   const [showAbout,setShowAbout]=React.useState(false);
@@ -41,7 +41,14 @@ function App(){
 
   React.useEffect(()=>{setCookie('cardBack',backColor);},[backColor]);
   React.useEffect(()=>{setCookie('theme',theme);applyTheme(theme);},[theme]);
-  React.useEffect(()=>{if(!(user.id && user.name)) setShowReg(true);},[user]);
+  React.useEffect(()=>{
+    const id=getCookie('userId');
+    if(!id){setShowReg(true);return;}
+    fetch(`/api/user/${id}`)
+      .then(r=>{if(!r.ok) throw new Error('not found'); return r.json();})
+      .then(d=>{setUser({id:d.id,name:d.name});setCookie('userId',d.id);setCookie('userName',d.name);})
+      .catch(()=>{setShowReg(true);});
+  },[]);
   React.useEffect(()=>{if(gameIdParam && user.id){joinGame(gameIdParam);}},[user.id]);
   React.useEffect(()=>{if(gameId){fetchState();fetchLogs();}},[gameId]);
   React.useEffect(()=>{if(state && state.isAbandoned){setShowAbandoned(true);}},[state]);
@@ -69,8 +76,11 @@ function App(){
       .then(r=>r.json()).then(d=>{setUser(d);setCookie('userId',d.id);setCookie('userName',d.name);setShowReg(false);if(gameIdParam) joinGame(gameIdParam);});
   }
   function startGame(){
+    if(!user.id){setShowReg(true);return;}
     fetch('/api/game/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requesterId:user.id})})
-      .then(r=>r.json()).then(d=>{setGameId(d.gameId);});
+      .then(r=>{if(!r.ok) throw new Error('start'); return r.json();})
+      .then(d=>{setGameId(d.gameId);})
+      .catch(()=>{});
   }
   function joinGame(gid){
     fetch('/api/game/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId:gid,userId:user.id})})
@@ -140,7 +150,7 @@ function App(){
     showReg && React.createElement(RegistrationModal,{onSubmit:register}),
     showAbandoned && React.createElement(AbandonedModal,{onClose:closeAbandoned}),
     React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white`},
-      user.name ? (connected?`Connected to game as ${user.name}`:`Disconnected as ${user.name}`) : (connected?'Connected':'Disconnected')
+      user.name ? `${user.name}: ${connected?'Connected':'Disconnected'}` : (connected?'Connected':'Disconnected')
     ),
     gameId && React.createElement('div',{className:'fixed bottom-0 left-0 m-2 w-64'},[
       React.createElement('div',{className:'bg-white dark:bg-gray-800 text-black dark:text-white border rounded'},[

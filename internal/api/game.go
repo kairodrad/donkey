@@ -48,6 +48,11 @@ func StartGameHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid requester"})
 		return
 	}
+	var user model.User
+	if err := db.DB.First(&user, "id = ?", req.RequesterID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
 	gameModel := model.Game{ID: model.NewID(), RequesterID: req.RequesterID}
 	if err := db.DB.Create(&gameModel).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -57,8 +62,6 @@ func StartGameHandler(c *gin.Context) {
 	db.DB.Create(&model.GameState{GameID: gameModel.ID})
 	gp := model.GamePlayer{GameID: gameModel.ID, UserID: req.RequesterID, JoinOrder: 0}
 	db.DB.Create(&gp)
-	var user model.User
-	db.DB.First(&user, "id = ?", req.RequesterID)
 	logAndSend(gameModel.ID, req.RequesterID, "status", user.Name+" created the game")
 	publishState(gameModel.ID)
 	c.JSON(http.StatusOK, gin.H{"gameId": gameModel.ID})
@@ -75,6 +78,11 @@ func JoinGameHandler(c *gin.Context) {
 	var req JoinGameRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.GameID == "" || req.UserID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid join"})
+		return
+	}
+	var user model.User
+	if err := db.DB.First(&user, "id = ?", req.UserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
 	var gameModel model.Game
@@ -99,8 +107,6 @@ func JoinGameHandler(c *gin.Context) {
 	}
 	gp := model.GamePlayer{GameID: gameModel.ID, UserID: req.UserID, JoinOrder: int(count)}
 	db.DB.Create(&gp)
-	var user model.User
-	db.DB.First(&user, "id = ?", req.UserID)
 	logAndSend(gameModel.ID, req.UserID, "status", user.Name+": joined the game")
 	// auto finalize if 8 players
 	if count+1 >= 8 {

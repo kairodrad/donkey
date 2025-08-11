@@ -39,6 +39,17 @@ func TestRegisterRejectsEmptyName(t *testing.T) {
 	assert.Equal(t, 400, resp.StatusCode)
 }
 
+func TestStartGameRequiresValidUser(t *testing.T) {
+	ts := httptest.NewServer(server.New())
+	defer ts.Close()
+	// missing requesterId
+	resp, _ := ts.Client().Post(ts.URL+"/api/game/start", "application/json", bytes.NewBufferString(`{}`))
+	assert.Equal(t, 400, resp.StatusCode)
+	// nonexistent user
+	resp, _ = ts.Client().Post(ts.URL+"/api/game/start", "application/json", bytes.NewBufferString(`{"requesterId":"bad"}`))
+	assert.Equal(t, 404, resp.StatusCode)
+}
+
 func TestFinalizeDealsAndLogs(t *testing.T) {
 	ts := httptest.NewServer(server.New())
 	defer ts.Close()
