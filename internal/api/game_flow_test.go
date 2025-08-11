@@ -33,7 +33,7 @@ func TestJoinCreatesSinglePlayerPerUser(t *testing.T) {
 	assert.Equal(t, 2, len(state.Players))
 }
 
-func TestRegisterWithGameIDAutoJoins(t *testing.T) {
+func TestRegisterThenJoinWithGameID(t *testing.T) {
 	ts := httptest.NewServer(server.New())
 	defer ts.Close()
 	client := ts.Client()
@@ -46,10 +46,11 @@ func TestRegisterWithGameIDAutoJoins(t *testing.T) {
 	var g map[string]string
 	json.NewDecoder(resp.Body).Decode(&g)
 
-	// joiner registers with gameId
-	resp, _ = client.Post(ts.URL+"/api/register", "application/json", bytes.NewBufferString(`{"name":"Join","gameId":"`+g["gameId"]+`"}`))
+	// joiner registers
+	resp, _ = client.Post(ts.URL+"/api/register", "application/json", bytes.NewBufferString(`{"name":"Join"}`))
 	var join map[string]string
 	json.NewDecoder(resp.Body).Decode(&join)
+	client.Post(ts.URL+"/api/game/join", "application/json", bytes.NewBufferString(`{"gameId":"`+g["gameId"]+`","userId":"`+join["id"]+`"}`))
 
 	// ensure joined
 	stateResp, _ := client.Get(ts.URL + "/api/game/" + g["gameId"] + "/state/" + host["id"])

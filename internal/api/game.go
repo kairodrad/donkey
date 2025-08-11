@@ -14,8 +14,7 @@ import (
 
 // RegisterRequest is the request body for user registration.
 type RegisterRequest struct {
-	Name   string `json:"name"`
-	GameID string `json:"gameId"`
+	Name string `json:"name"`
 }
 
 // RegisterHandler registers a new user.
@@ -34,12 +33,6 @@ func RegisterHandler(c *gin.Context) {
 	if err := db.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
-	}
-	if req.GameID != "" {
-		if _, err := joinGame(req.GameID, user.ID); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
 	}
 	c.JSON(http.StatusOK, gin.H{"id": user.ID, "name": user.Name})
 }

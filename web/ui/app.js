@@ -49,7 +49,6 @@ function App(){
       .then(d=>{setUser({id:d.id,name:d.name});setCookie('userId',d.id);setCookie('userName',d.name);})
       .catch(()=>{setShowReg(true);});
   },[]);
-  React.useEffect(()=>{if(gameIdParam && user.id){joinGame(gameIdParam);}},[user.id]);
   React.useEffect(()=>{if(gameId && user.id){fetchState();fetchLogs();}},[gameId,user.id]);
   React.useEffect(()=>{if(state && state.isAbandoned){setShowAbandoned(true);}},[state]);
   React.useEffect(()=>{
@@ -73,9 +72,14 @@ function App(){
   }
   function register(name){
     const body={name};
-    if(gameIdParam) body.gameId=gameIdParam;
     fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-      .then(r=>r.json()).then(d=>{setUser(d);setCookie('userId',d.id);setCookie('userName',d.name);setShowReg(false);});
+      .then(r=>r.json()).then(d=>{
+        setUser(d);
+        setCookie('userId',d.id);
+        setCookie('userName',d.name);
+        setShowReg(false);
+        if(gameIdParam) joinGame(gameIdParam,d.id);
+      });
   }
   function startGame(){
     if(!user.id){setShowReg(true);return;}
