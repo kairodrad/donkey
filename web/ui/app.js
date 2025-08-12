@@ -135,27 +135,27 @@ function App(){
 
   const showShare = gameId && state && !state.hasStarted && !state.isAbandoned;
   const isRequester = state && state.requesterId==user.id;
-  const actualTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  const actualTheme = theme==='system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light') : theme;
 
   return React.createElement('div',{className:'h-full flex flex-col items-center relative bg-white dark:bg-black'},[
     React.createElement('img',{src:`/assets/donkey-background-${actualTheme}.png`,className:'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-full max-h-full opacity-20 pointer-events-none select-none'}),
     React.createElement('div',{className:'fixed top-0 left-0 w-full h-20 flex items-center justify-center bg-white dark:bg-black z-30'},[
       React.createElement('div',{className:'absolute left-2 h-full flex items-center relative'},[
-        React.createElement('button',{className:'h-full aspect-square bg-blue-200 dark:bg-blue-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
-        menuOpen && React.createElement('div',{className:'absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow z-40'},[
-          (!gameId && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);startGame();}},'New Game')),
-          (gameId && isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);abandon();}},'Abandon Game')),
+        React.createElement('button',{className:'h-full aspect-square bg-amber-200 dark:bg-amber-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
+        menuOpen && React.createElement('div',{className:'absolute top-full left-0 mt-2 bg-amber-100 dark:bg-amber-800 text-black dark:text-white rounded shadow z-40'},[
+          (!gameId && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);startGame();}},'New Game')),
+          (gameId && isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);abandon();}},'Abandon Game')),
           (gameId && !isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap opacity-50 cursor-not-allowed',disabled:true},'New Game')),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowRename(true);}},'Rename Player'),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowSettings(true);}},'Settings'),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowHelp(true);}},'Help'),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
+          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);setShowRename(true);}},'Rename Player'),
+          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);setShowSettings(true);}},'Settings'),
+          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);setShowHelp(true);}},'Help'),
+          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
         ])
       ]),
       React.createElement('img',{src:`/assets/donkey-title-${actualTheme}.png`,className:'h-full w-auto',alt:'Donkey title'})
     ]),
     React.createElement('div',{className:'p-4 mt-20 space-y-4 flex flex-col items-center z-10'},[
-      state && !state.hasStarted && isRequester &&
+      !showShare && state && !state.hasStarted && isRequester &&
         React.createElement('button',{
           className:`px-3 py-1 bg-green-200 dark:bg-green-700 text-black dark:text-white rounded ${state.players.length>1?'':'opacity-50 cursor-not-allowed'}`,
           onClick:state.players.length>1?finalize:null
@@ -170,7 +170,7 @@ function App(){
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),
     showReg && React.createElement(RegistrationModal,{onSubmit:register}),
     showAbandoned && React.createElement(AbandonedModal,{onClose:closeAbandoned}),
-    React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white z-10`},
+    !showShare && React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white z-10`},
       user.name ? `${user.name}: ${connected?'Connected':'Disconnected'}` : (connected?'Connected':'Disconnected')
     ),
     gameId && React.createElement('div',{className:'fixed bottom-0 left-0 m-2 w-64 z-10'},[
