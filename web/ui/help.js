@@ -1,7 +1,7 @@
 const React = window.React;
 
 export function HelpModal({onClose}){
-  return React.createElement('div',{className:'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'},
+  return React.createElement('div',{className:'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'},
     React.createElement('div',{className:'bg-white dark:bg-slate-700 text-black dark:text-white p-4 rounded space-y-2 max-w-md'},[
       React.createElement('h2',{className:'text-lg font-bold'},'How to Play'),
       React.createElement('ul',{className:'list-disc pl-5 space-y-1 text-sm'},[
