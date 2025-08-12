@@ -8,9 +8,9 @@ export function ShareModal({gameId,isRequester,playerCount,onFinalize}){
     setCopied(true);
     setTimeout(()=>setCopied(false),2000);
   }
-  const copyClasses=copied?'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed':'bg-blue-200 dark:bg-blue-700 text-black dark:text-white';
+  const copyClasses=copied?'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed':'bg-amber-200 dark:bg-amber-700 text-black dark:text-white';
   return React.createElement('div',{className:'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'},[
-    React.createElement('div',{className:'bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded space-y-2'},[
+    React.createElement('div',{className:'bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded space-y-2 z-50'},[
       React.createElement('div',null,isRequester?'Game created! Please copy the URL to share.':'Please copy the URL to share.'),
       React.createElement('button',{className:`px-3 py-1 rounded w-full ${copyClasses}`,onClick:copied?null:copy,disabled:copied},copied?'URL copied to clipboard':'Copy URL'),
       isRequester && React.createElement('button',{
