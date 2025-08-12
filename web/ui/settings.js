@@ -7,7 +7,7 @@ export function SettingsModal({theme,setTheme,backColor,setBackColor,onClose,use
     const cleaned=name.replace(/[^\w\s]/g,'').trim().slice(0,20);
     if(cleaned && cleaned!==user.name) onRename(cleaned);
   }
-  return React.createElement('div',{className:'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'},
+  return React.createElement('div',{className:'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'},
     React.createElement('div',{className:'bg-white dark:bg-slate-700 text-black dark:text-white p-4 rounded space-y-4'},[
       React.createElement('h2',{className:'text-lg font-bold'},'Settings'),
       React.createElement('div',{className:'space-y-2'},[

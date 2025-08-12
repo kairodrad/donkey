@@ -137,12 +137,12 @@ function App(){
   const isRequester = state && state.requesterId==user.id;
   const actualTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 
-  return React.createElement('div',{className:'h-full flex flex-col items-center relative bg-white dark:bg-slate-800'},[
+  return React.createElement('div',{className:'h-full flex flex-col items-center relative bg-white dark:bg-black'},[
     React.createElement('img',{src:`/assets/donkey-background-${actualTheme}.png`,className:'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-full max-h-full opacity-20 pointer-events-none select-none'}),
-    React.createElement('nav',{className:'fixed top-0 left-0 p-2 z-30'},[
-      React.createElement('div',{className:'relative'},[
-        React.createElement('button',{className:'px-2 py-1 bg-blue-200 dark:bg-blue-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
-        menuOpen && React.createElement('div',{className:'absolute mt-2 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow z-30'},[
+    React.createElement('div',{className:'fixed top-0 left-0 w-full h-20 flex items-center justify-center bg-white dark:bg-black z-30'},[
+      React.createElement('div',{className:'absolute left-2 h-full flex items-center relative'},[
+        React.createElement('button',{className:'h-full aspect-square bg-blue-200 dark:bg-blue-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
+        menuOpen && React.createElement('div',{className:'absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow z-40'},[
           (!gameId && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);startGame();}},'New Game')),
           (gameId && isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);abandon();}},'Abandon Game')),
           (gameId && !isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap opacity-50 cursor-not-allowed',disabled:true},'New Game')),
@@ -151,12 +151,10 @@ function App(){
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowHelp(true);}},'Help'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
         ])
-      ])
-    ]),
-    React.createElement('div',{className:'mt-4 w-full flex justify-center items-center h-20 bg-white dark:bg-slate-800 z-20'},[
+      ]),
       React.createElement('img',{src:`/assets/donkey-title-${actualTheme}.png`,className:'h-full w-auto',alt:'Donkey title'})
     ]),
-    React.createElement('div',{className:'p-4 mt-8 space-y-4 flex flex-col items-center z-10'},[
+    React.createElement('div',{className:'p-4 mt-20 space-y-4 flex flex-col items-center z-10'},[
       state && !state.hasStarted && isRequester &&
         React.createElement('button',{
           className:`px-3 py-1 bg-green-200 dark:bg-green-700 text-black dark:text-white rounded ${state.players.length>1?'':'opacity-50 cursor-not-allowed'}`,
