@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Setup
+
+- Go 1.24.3 or later required
+- Run `go mod download` to install dependencies
+- Set DATABASE_URL for PostgreSQL or omit for SQLite
+
 ## Development Commands
 
 **Run the server:**
@@ -62,3 +68,17 @@ This is a Go web application for the "Donkey" card game that supports multiplaye
 **Testing:**
 - Unit tests in `internal/api/game_flow_test.go`
 - Integration tests verify complete game flow scenarios
+- Test coverage goals: Aim for 80%+ coverage on core game logic
+- Test database setup: Uses SQLite in-memory for fast test execution
+- Run integration tests with `go test ./... -tags=integration`
+
+## Code Quality
+
+- Run `go fmt` to format code according to Go standards
+- Run `go vet` to check for common errors and suspicious constructs
+- Follow Go best practices and idiomatic patterns
+- Code review expectations:
+  - All PRs require review before merging
+  - Focus on readability, maintainability, and performance
+  - Ensure adequate test coverage for new features
+  - Check for proper error handling and edge cases
