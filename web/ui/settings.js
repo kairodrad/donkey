@@ -1,7 +1,13 @@
 const React = window.React;
 import { backs } from './utils.js';
 
-export function SettingsModal({theme,setTheme,backColor,setBackColor,onClose}){
+export function SettingsModal({
+  theme = 'system',
+  setTheme = () => {},
+  backColor = 'red',
+  setBackColor = () => {},
+  onClose = () => {}
+} = {}){
   return React.createElement('div',{className:'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'},
     React.createElement('div',{className:'bg-white dark:bg-slate-700 text-black dark:text-white p-4 rounded space-y-4'},[
       React.createElement('h2',{className:'text-lg font-bold'},'Settings'),
