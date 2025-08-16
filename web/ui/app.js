@@ -1,4 +1,4 @@
-import { getCookie, setCookie, seats, sortCards } from './utils.js';
+import { getCookie, setCookie, seats, sortCards, getActualTheme, applyTheme, getThemeAssetUrl, preloadThemeAssets } from './utils.js';
 import { RegistrationModal } from './registration.js';
 import { SettingsModal } from './settings.js';
 import { HelpModal } from './help.js';
@@ -8,10 +8,6 @@ import { AbandonedModal } from './abandoned.js';
 const React = window.React;
 const ReactDOM = window.ReactDOM;
 
-function applyTheme(t){
-  const actual=t==='system'? (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light') : t;
-  document.documentElement.classList.toggle('dark', actual==='dark');
-}
 const initialTheme=getCookie('theme')||'system';
 applyTheme(initialTheme);
 
@@ -40,6 +36,11 @@ function App(){
   const [connKey,setConnKey]=React.useState(0);
   const [showAbandoned,setShowAbandoned]=React.useState(false);
   const [selectedCard,setSelectedCard]=React.useState(null);
+
+  // Preload theme assets for smooth transitions
+  React.useEffect(() => {
+    preloadThemeAssets(['light', 'dark']);
+  }, []);
 
   React.useEffect(()=>{setCookie('cardBack',backColor);},[backColor]);
   React.useEffect(()=>{setCookie('theme',theme);applyTheme(theme);},[theme]);
@@ -123,10 +124,10 @@ function App(){
 
   const showShare = gameId && state && !state.hasStarted && !state.isAbandoned;
   const isRequester = state && state.requesterId==user.id;
-  const actualTheme = theme==='system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light') : theme;
+  const actualTheme = getActualTheme(theme);
 
   return React.createElement('div',{className:'h-full flex flex-col items-center relative bg-white dark:bg-black'},[
-    React.createElement('img',{src:`/assets/donkey-background-${actualTheme}.png`,className:'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-full max-h-full opacity-20 pointer-events-none select-none'}),
+    React.createElement('img',{src:getThemeAssetUrl('donkey-background', theme),className:'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-full max-h-full opacity-20 pointer-events-none select-none'}),
     React.createElement('div',{className:'fixed top-0 left-0 w-full h-20 flex items-center justify-center bg-white dark:bg-black z-30'},[
       React.createElement('div',{className:'absolute left-2 h-full flex items-center relative'},[
         React.createElement('button',{className:'h-full aspect-square bg-amber-200 dark:bg-amber-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
@@ -139,7 +140,7 @@ function App(){
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
         ])
       ]),
-      React.createElement('img',{src:`/assets/donkey-title-${actualTheme}.png`,className:'h-full w-auto',alt:'Donkey title'})
+      React.createElement('img',{src:getThemeAssetUrl('donkey-title', theme),className:'h-full w-auto',alt:'Donkey title'})
     ]),
     React.createElement('div',{className:'p-4 mt-20 space-y-4 flex flex-col items-center z-10'},[
       !showShare && state && !state.hasStarted && isRequester &&
