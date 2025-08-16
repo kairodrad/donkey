@@ -5,7 +5,6 @@ import { HelpModal } from './help.js';
 import { AboutModal } from './about.js';
 import { ShareModal } from './share.js';
 import { AbandonedModal } from './abandoned.js';
-import { RenameModal } from './rename.js';
 const React = window.React;
 const ReactDOM = window.ReactDOM;
 
@@ -40,7 +39,6 @@ function App(){
   const [chat,setChat]=React.useState('');
   const [connKey,setConnKey]=React.useState(0);
   const [showAbandoned,setShowAbandoned]=React.useState(false);
-  const [showRename,setShowRename]=React.useState(false);
   const [selectedCard,setSelectedCard]=React.useState(null);
 
   React.useEffect(()=>{setCookie('cardBack',backColor);},[backColor]);
@@ -112,16 +110,6 @@ function App(){
     fetch('/api/game/abandon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id})})
       .then(()=>{setGameId(null);setState(null);setLogs([]);window.history.replaceState(null,'','/');});
   }
-  function rename(newName){
-    fetch(`/api/user/${user.id}/rename`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({gameId,name:newName})
-    })
-      .then(r=>{if(!r.ok) throw new Error('rename'); return r.json();})
-      .then(d=>{if(d && d.name){setUser(u=>({...u,name:d.name}));setCookie('userName',d.name);}})
-      .catch(()=>{});
-  }
   function openAbout(){
     fetch('/api/version').then(r=>r.json()).then(d=>setVersion(d.version));
     setShowAbout(true);
@@ -146,7 +134,6 @@ function App(){
           (!gameId && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);startGame();}},'New Game')),
           (gameId && isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);abandon();}},'Abandon Game')),
           (gameId && !isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap opacity-50 cursor-not-allowed',disabled:true},'New Game')),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);setShowRename(true);}},'Rename Player'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);setShowSettings(true);}},'Settings'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);setShowHelp(true);}},'Help'),
           React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
@@ -163,8 +150,7 @@ function App(){
       state && !state.hasStarted && !isRequester && React.createElement('div',null,'Awaiting Creator to start the game...'),
       state && renderPlayers()
     ]),
-    showSettings && React.createElement(SettingsModal,{theme,setTheme,backColor,setBackColor,user,onRename:rename,onClose:()=>setShowSettings(false)}),
-    showRename && React.createElement(RenameModal,{currentName:user.name,onSubmit:rename,onClose:()=>setShowRename(false)}),
+    showSettings && React.createElement(SettingsModal,{theme,setTheme,backColor,setBackColor,onClose:()=>setShowSettings(false)}),
     showHelp && React.createElement(HelpModal,{onClose:()=>setShowHelp(false)}),
     showAbout && React.createElement(AboutModal,{version,onClose:()=>setShowAbout(false)}),
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),

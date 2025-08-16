@@ -40,7 +40,6 @@ func New() *gin.Engine {
 		apiGroup.GET("/game/:gameId/stream/:userId", api.StreamHandler)
 		apiGroup.GET("/game/:gameId/state/:userId", api.GameStateHandler)
 		apiGroup.GET("/admin/game/:gameId/state", api.AdminStateHandler)
-		apiGroup.POST("/user/:id/rename", api.RenameHandler)
 		apiGroup.GET("/user/:id", api.GetUserHandler)
 		apiGroup.GET("/users", api.ListUsersHandler)
 		apiGroup.GET("/version", api.VersionHandler)
