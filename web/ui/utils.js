@@ -77,3 +77,72 @@ export function sortCards(cards){
     return rankOrder[rA]-rankOrder[rB];
   });
 }
+
+// Shared UI component utilities
+const React = window.React;
+
+// Base modal wrapper component
+export function ModalWrapper({ children, onClose }) {
+  return React.createElement('div', {
+    className: 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'
+  }, 
+    React.createElement('div', {
+      className: 'bg-white dark:bg-slate-700 text-black dark:text-white p-4 rounded space-y-2'
+    }, children)
+  );
+}
+
+// Standard button component with consistent styling
+export function Button({ 
+  children, 
+  onClick, 
+  variant = 'primary', 
+  disabled = false, 
+  className = '',
+  ...props 
+}) {
+  const baseClasses = 'px-4 py-1 rounded transition-colors';
+  const variants = {
+    primary: 'bg-pink-200 dark:bg-pink-700 text-black dark:text-white hover:bg-pink-300 dark:hover:bg-pink-600',
+    success: 'bg-green-200 dark:bg-green-700 text-black dark:text-white hover:bg-green-300 dark:hover:bg-green-600',
+    warning: 'bg-amber-200 dark:bg-amber-700 text-black dark:text-white hover:bg-amber-300 dark:hover:bg-amber-600',
+    secondary: 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+  };
+  
+  const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
+  const variantClasses = variants[variant] || variants.primary;
+  
+  return React.createElement('button', {
+    className: `${baseClasses} ${variantClasses} ${disabledClasses} ${className}`.trim(),
+    onClick: disabled ? null : onClick,
+    disabled,
+    ...props
+  }, children);
+}
+
+// Standard input component with consistent styling
+export function Input({ 
+  className = '', 
+  ...props 
+}) {
+  const baseClasses = 'border p-2 bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600';
+  
+  return React.createElement('input', {
+    className: `${baseClasses} ${className}`.trim(),
+    ...props
+  });
+}
+
+// Standard select component with consistent styling
+export function Select({ 
+  children, 
+  className = '', 
+  ...props 
+}) {
+  const baseClasses = 'border p-1 bg-white text-black dark:bg-slate-800 dark:text-white dark:border-gray-600';
+  
+  return React.createElement('select', {
+    className: `${baseClasses} ${className}`.trim(),
+    ...props
+  }, children);
+}
