@@ -1,18 +1,13 @@
-import { getCookie, setCookie, seats, sortCards } from './utils.js';
+import { getCookie, setCookie, seats, sortCards, getActualTheme, applyTheme, getThemeAssetUrl, preloadThemeAssets, Button } from './utils.js';
 import { RegistrationModal } from './registration.js';
 import { SettingsModal } from './settings.js';
 import { HelpModal } from './help.js';
 import { AboutModal } from './about.js';
 import { ShareModal } from './share.js';
 import { AbandonedModal } from './abandoned.js';
-import { RenameModal } from './rename.js';
 const React = window.React;
 const ReactDOM = window.ReactDOM;
 
-function applyTheme(t){
-  const actual=t==='system'? (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light') : t;
-  document.documentElement.classList.toggle('dark', actual==='dark');
-}
 const initialTheme=getCookie('theme')||'system';
 applyTheme(initialTheme);
 
@@ -40,8 +35,12 @@ function App(){
   const [chat,setChat]=React.useState('');
   const [connKey,setConnKey]=React.useState(0);
   const [showAbandoned,setShowAbandoned]=React.useState(false);
-  const [showRename,setShowRename]=React.useState(false);
   const [selectedCard,setSelectedCard]=React.useState(null);
+
+  // Preload theme assets for smooth transitions
+  React.useEffect(() => {
+    preloadThemeAssets(['light', 'dark']);
+  }, []);
 
   React.useEffect(()=>{setCookie('cardBack',backColor);},[backColor]);
   React.useEffect(()=>{setCookie('theme',theme);applyTheme(theme);},[theme]);
@@ -112,16 +111,6 @@ function App(){
     fetch('/api/game/abandon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId,userId:user.id})})
       .then(()=>{setGameId(null);setState(null);setLogs([]);window.history.replaceState(null,'','/');});
   }
-  function rename(newName){
-    fetch(`/api/user/${user.id}/rename`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({gameId,name:newName})
-    })
-      .then(r=>{if(!r.ok) throw new Error('rename'); return r.json();})
-      .then(d=>{if(d && d.name){setUser(u=>({...u,name:d.name}));setCookie('userName',d.name);}})
-      .catch(()=>{});
-  }
   function openAbout(){
     fetch('/api/version').then(r=>r.json()).then(d=>setVersion(d.version));
     setShowAbout(true);
@@ -135,59 +124,111 @@ function App(){
 
   const showShare = gameId && state && !state.hasStarted && !state.isAbandoned;
   const isRequester = state && state.requesterId==user.id;
+  const actualTheme = getActualTheme(theme);
 
-  return React.createElement('div',{className:'h-full flex flex-col items-center'},[
-    React.createElement('nav',{className:'fixed top-0 left-0 p-2'},[
-      React.createElement('div',{className:'relative'},[
-        React.createElement('button',{className:'px-2 py-1 bg-blue-200 dark:bg-blue-700 text-black dark:text-white rounded',onClick:()=>setMenuOpen(!menuOpen)},'☰'),
-        menuOpen && React.createElement('div',{className:'absolute mt-2 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow'},[
-          (!gameId && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);startGame();}},'New Game')),
-          (gameId && isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);abandon();}},'Abandon Game')),
-          (gameId && !isRequester && React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap opacity-50 cursor-not-allowed',disabled:true},'New Game')),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowRename(true);}},'Rename Player'),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowSettings(true);}},'Settings'),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);setShowHelp(true);}},'Help'),
-          React.createElement('button',{className:'block w-full text-left px-4 py-2 whitespace-nowrap',onClick:()=>{setMenuOpen(false);openAbout();}},'About')
-        ])
-      ])
-    ]),
-    React.createElement('h1',{className:'text-3xl font-bold text-center mt-4'},'DONKEY'),
-    React.createElement('div',{className:'p-4 mt-8 space-y-4 flex flex-col items-center'},[
-      state && !state.hasStarted && isRequester &&
-        React.createElement('button',{
-          className:`px-3 py-1 bg-green-200 dark:bg-green-700 text-black dark:text-white rounded ${state.players.length>1?'':'opacity-50 cursor-not-allowed'}`,
-          onClick:state.players.length>1?finalize:null
-        },'Finalize Players and Deal'),
+  function renderHeader() {
+    const menuItems = [
+      !gameId && { label: 'New Game', action: startGame },
+      gameId && isRequester && { label: 'Abandon Game', action: abandon },
+      gameId && !isRequester && { label: 'New Game', disabled: true },
+      { label: 'Settings', action: () => setShowSettings(true) },
+      { label: 'Help', action: () => setShowHelp(true) },
+      { label: 'About', action: openAbout }
+    ].filter(Boolean);
+
+    return React.createElement('div', { className: 'fixed top-0 left-0 w-full h-20 flex items-center justify-center bg-white dark:bg-black z-30' }, [
+      React.createElement('div', { className: 'absolute left-2 h-full flex items-center relative' }, [
+        React.createElement(Button, {
+          variant: 'warning',
+          className: 'h-full aspect-square text-lg',
+          onClick: () => setMenuOpen(!menuOpen)
+        }, '☰'),
+        menuOpen && React.createElement('div', { 
+          className: 'absolute top-full left-0 mt-2 bg-amber-100 dark:bg-amber-800 text-black dark:text-white rounded shadow z-40 min-w-max'
+        }, menuItems.map((item, index) => 
+          React.createElement('button', {
+            key: index,
+            className: `block w-full text-left px-4 py-2 whitespace-nowrap hover:bg-amber-200 dark:hover:bg-amber-700 ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
+            onClick: item.disabled ? null : () => { setMenuOpen(false); item.action(); },
+            disabled: item.disabled
+          }, item.label)
+        ))
+      ]),
+      React.createElement('img', {
+        src: getThemeAssetUrl('donkey-title', theme),
+        className: 'h-full w-auto',
+        alt: 'Donkey title'
+      })
+    ]);
+  }
+
+  return React.createElement('div',{className:'h-full flex flex-col items-center relative bg-white dark:bg-black'},[
+    React.createElement('img',{src:getThemeAssetUrl('donkey-background', theme),className:'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-full max-h-full opacity-20 pointer-events-none select-none'}),
+    renderHeader(),
+    React.createElement('div',{className:'p-4 mt-20 space-y-4 flex flex-col items-center z-10'},[
+      !showShare && state && !state.hasStarted && isRequester &&
+        React.createElement(Button, {
+          variant: 'success',
+          onClick: state.players.length > 1 ? finalize : null,
+          disabled: state.players.length <= 1,
+          className: 'px-3 py-1'
+        }, 'Finalize Players and Deal'),
       state && !state.hasStarted && !isRequester && React.createElement('div',null,'Awaiting Creator to start the game...'),
       state && renderPlayers()
     ]),
-    showSettings && React.createElement(SettingsModal,{theme,setTheme,backColor,setBackColor,user,onRename:rename,onClose:()=>setShowSettings(false)}),
-    showRename && React.createElement(RenameModal,{currentName:user.name,onSubmit:rename,onClose:()=>setShowRename(false)}),
+    showSettings && React.createElement(SettingsModal,{theme,setTheme,backColor,setBackColor,onClose:()=>setShowSettings(false)}),
     showHelp && React.createElement(HelpModal,{onClose:()=>setShowHelp(false)}),
     showAbout && React.createElement(AboutModal,{version,onClose:()=>setShowAbout(false)}),
     showShare && React.createElement(ShareModal,{gameId,isRequester,playerCount:state?state.players.length:1,onFinalize:finalize}),
     showReg && React.createElement(RegistrationModal,{onSubmit:register}),
     showAbandoned && React.createElement(AbandonedModal,{onClose:closeAbandoned}),
-    React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white`},
+    !showShare && React.createElement('div',{className:`fixed bottom-0 right-0 m-2 text-xs px-2 py-1 rounded ${connected?'bg-green-500':'bg-red-500'} text-white z-10`},
       user.name ? `${user.name}: ${connected?'Connected':'Disconnected'}` : (connected?'Connected':'Disconnected')
     ),
-    gameId && React.createElement('div',{className:'fixed bottom-0 left-0 m-2 w-64'},[
-      React.createElement('div',{className:'bg-white dark:bg-gray-800 text-black dark:text-white border rounded'},[
-        React.createElement('div',{className:'flex justify-between items-center px-2 py-1 border-b'},[
-          React.createElement('span',null,'Session Updates'),
-          React.createElement('button',{onClick:()=>setShowLog(!showLog)},showLog?'-':'+')
-        ]),
-        showLog?[
-          React.createElement('div',{className:'h-24 overflow-y-auto px-2 text-sm'},logs.map(l=>React.createElement('div',{key:l.id},l.message))),
-          React.createElement('div',{className:'flex border-t'},[
-            React.createElement('input',{className:'flex-grow p-1 bg-white text-black dark:bg-gray-700 dark:text-white',value:chat,maxLength:128,onChange:e=>setChat(e.target.value),onKeyDown:e=>{if(e.key==='Enter')sendChat();}}),
-            React.createElement('button',{className:'px-2',onClick:sendChat},'Send')
-          ])
-        ]:
-          React.createElement('div',{className:'px-2 py-1 text-sm truncate'},logs.length?logs[0].message:'')
-      ])
-    ])
+    gameId && renderSessionLog()
   ]);
+
+  function renderSessionLog() {
+    return React.createElement('div', { className: 'fixed bottom-0 left-0 m-2 w-64 z-10' }, [
+      React.createElement('div', { className: 'bg-white dark:bg-gray-800 text-black dark:text-white border dark:border-gray-600 rounded' }, [
+        React.createElement('div', { className: 'flex justify-between items-center px-2 py-1 border-b dark:border-gray-600' }, [
+          React.createElement('span', { className: 'font-medium' }, 'Session Updates'),
+          React.createElement(Button, {
+            onClick: () => setShowLog(!showLog),
+            className: 'px-2 py-0 text-sm min-h-0'
+          }, showLog ? '−' : '+')
+        ]),
+        showLog ? [
+          React.createElement('div', { 
+            className: 'h-24 overflow-y-auto px-2 py-1 text-sm space-y-1' 
+          }, logs.map(log => 
+            React.createElement('div', { 
+              key: log.id, 
+              className: 'text-xs leading-tight' 
+            }, log.message)
+          )),
+          React.createElement('div', { className: 'flex border-t dark:border-gray-600' }, [
+            React.createElement('input', {
+              className: 'flex-grow p-1 text-sm bg-white text-black dark:bg-gray-700 dark:text-white border-0 focus:ring-1 focus:ring-blue-500',
+              value: chat,
+              maxLength: 128,
+              placeholder: 'Type message...',
+              onChange: e => setChat(e.target.value),
+              onKeyDown: e => { if(e.key === 'Enter') sendChat(); }
+            }),
+            React.createElement(Button, {
+              onClick: sendChat,
+              disabled: !chat.trim(),
+              className: 'px-2 py-1 text-xs'
+            }, 'Send')
+          ])
+        ] : 
+          React.createElement('div', { 
+            className: 'px-2 py-1 text-sm text-gray-600 dark:text-gray-400 truncate' 
+          }, logs.length ? logs[0].message : 'No messages yet...')
+      ])
+    ]);
+  }
 
   function renderPlayers(){
     const playersWithSeats=seats(state.players,user.id);

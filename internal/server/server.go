@@ -24,6 +24,9 @@ func New() *gin.Engine {
 	r.Use(logRequests())
 	r.Static("/assets", "./web/assets")
 	r.Static("/ui", "./web/ui")
+	r.StaticFile("/favicon.ico", "./web/assets/favicon.ico")
+	r.StaticFile("/apple-touch-icon.png", "./web/assets/apple-touch-icon.png")
+	r.StaticFile("/apple-touch-icon-precomposed.png", "./web/assets/apple-touch-icon.png")
 
 	apiGroup := r.Group("/api")
 	{
@@ -37,7 +40,6 @@ func New() *gin.Engine {
 		apiGroup.GET("/game/:gameId/stream/:userId", api.StreamHandler)
 		apiGroup.GET("/game/:gameId/state/:userId", api.GameStateHandler)
 		apiGroup.GET("/admin/game/:gameId/state", api.AdminStateHandler)
-		apiGroup.POST("/user/:id/rename", api.RenameHandler)
 		apiGroup.GET("/user/:id", api.GetUserHandler)
 		apiGroup.GET("/users", api.ListUsersHandler)
 		apiGroup.GET("/version", api.VersionHandler)
