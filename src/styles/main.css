@@ -1,0 +1,315 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Custom CSS Properties for Dynamic Theming */
+  :root {
+    /* Light Theme Variables */
+    --color-background: theme('colors.white');
+    --color-background-secondary: theme('colors.gray.50');
+    --color-background-tertiary: theme('colors.gray.100');
+    --color-surface: theme('colors.white');
+    --color-surface-secondary: theme('colors.gray.50');
+    --color-border: theme('colors.gray.200');
+    --color-border-secondary: theme('colors.gray.300');
+    --color-text: theme('colors.gray.900');
+    --color-text-secondary: theme('colors.gray.600');
+    --color-text-tertiary: theme('colors.gray.500');
+    
+    /* Pastel Light Theme Accents */
+    --color-primary: theme('colors.pastel-blue.400');
+    --color-primary-hover: theme('colors.pastel-blue.500');
+    --color-secondary: theme('colors.pastel-purple.400');
+    --color-accent: theme('colors.pastel-pink.400');
+    --color-success: theme('colors.pastel-green.400');
+    --color-warning: theme('colors.pastel-orange.400');
+    --color-error: theme('colors.pastel-pink.500');
+    
+    /* Card Game Specific */
+    --color-card-background: theme('colors.white');
+    --color-card-border: theme('colors.gray.300');
+    --color-card-shadow: theme('colors.gray.900' / 0.1);
+    --color-suit-red: theme('colors.card-suit-red');
+    --color-suit-black: theme('colors.card-suit-black');
+  }
+
+  .dark {
+    /* Dark Theme Variables */
+    --color-background: theme('colors.gray.900');
+    --color-background-secondary: theme('colors.gray.800');
+    --color-background-tertiary: theme('colors.gray.700');
+    --color-surface: theme('colors.gray.800');
+    --color-surface-secondary: theme('colors.gray.700');
+    --color-border: theme('colors.gray.600');
+    --color-border-secondary: theme('colors.gray.500');
+    --color-text: theme('colors.gray.100');
+    --color-text-secondary: theme('colors.gray.300');
+    --color-text-tertiary: theme('colors.gray.400');
+    
+    /* Pastel Dark Theme Accents - Darker variants */
+    --color-primary: theme('colors.pastel-blue.300');
+    --color-primary-hover: theme('colors.pastel-blue.200');
+    --color-secondary: theme('colors.pastel-purple.300');
+    --color-accent: theme('colors.pastel-pink.300');
+    --color-success: theme('colors.pastel-green.300');
+    --color-warning: theme('colors.pastel-orange.300');
+    --color-error: theme('colors.pastel-pink.400');
+    
+    /* Card Game Specific Dark */
+    --color-card-background: theme('colors.gray.700');
+    --color-card-border: theme('colors.gray.500');
+    --color-card-shadow: theme('colors.black' / 0.3);
+    --color-suit-red: theme('colors.red.400');
+    --color-suit-black: theme('colors.gray.200');
+  }
+
+  html {
+    font-family: theme('fontFamily.game');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-[var(--color-background)] text-[var(--color-text)] transition-colors duration-300;
+    min-height: 100vh;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-[var(--color-primary)] ring-opacity-50 ring-offset-2 ring-offset-[var(--color-background)];
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-[var(--color-background-secondary)];
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-[var(--color-border-secondary)] rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-[var(--color-text-tertiary)];
+  }
+}
+
+@layer components {
+  /* Base Card Component */
+  .card-base {
+    @apply bg-[var(--color-surface)] border border-[var(--color-border)] rounded-card shadow-card transition-all duration-200;
+  }
+
+  .card-base:hover {
+    @apply shadow-card-hover border-[var(--color-border-secondary)];
+  }
+
+  /* Game Card Specific */
+  .game-card {
+    @apply card-base bg-[var(--color-card-background)] border-[var(--color-card-border)] font-card;
+    aspect-ratio: 2.5 / 3.5;
+    background-image: 
+      radial-gradient(circle at 20% 20%, var(--color-card-shadow) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, var(--color-card-shadow) 0%, transparent 50%);
+  }
+
+  /* Button Base Classes */
+  .btn-base {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn-base bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] focus:ring-[var(--color-primary)];
+  }
+
+  .btn-secondary {
+    @apply btn-base bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] hover:bg-[var(--color-background-secondary)] focus:ring-[var(--color-primary)];
+  }
+
+  .btn-ghost {
+    @apply btn-base text-[var(--color-text-secondary)] hover:bg-[var(--color-background-secondary)] hover:text-[var(--color-text)] focus:ring-[var(--color-primary)];
+  }
+
+  .btn-danger {
+    @apply btn-base bg-[var(--color-error)] text-white hover:opacity-90 focus:ring-[var(--color-error)];
+  }
+
+  .btn-success {
+    @apply btn-base bg-[var(--color-success)] text-white hover:opacity-90 focus:ring-[var(--color-success)];
+  }
+
+  .btn-warning {
+    @apply btn-base bg-[var(--color-warning)] text-white hover:opacity-90 focus:ring-[var(--color-warning)];
+  }
+
+  /* Form Elements */
+  .form-input {
+    @apply block w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors duration-200;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-[var(--color-text)] mb-1;
+  }
+
+  /* Modal Backdrop */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    @apply bg-[var(--color-surface)] rounded-game shadow-game max-w-md w-full max-h-[90vh] overflow-auto;
+  }
+
+  /* Game UI Specific Classes */
+  .health-bar {
+    @apply w-full h-2 bg-[var(--color-background-tertiary)] rounded-full overflow-hidden;
+  }
+
+  .health-bar-fill {
+    @apply h-full transition-all duration-500 ease-out;
+  }
+
+  .score-display {
+    @apply font-mono text-2xl font-bold text-[var(--color-text)] tracking-wider;
+  }
+
+  /* Card Game Suits */
+  .suit-heart {
+    @apply text-[var(--color-suit-red)];
+  }
+
+  .suit-diamond {
+    @apply text-[var(--color-suit-red)];
+  }
+
+  .suit-club {
+    @apply text-[var(--color-suit-black)];
+  }
+
+  .suit-spade {
+    @apply text-[var(--color-suit-black)];
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-card-deal {
+    animation: cardDeal 0.6s ease-out;
+  }
+
+  .animate-card-flip {
+    animation: cardFlip 0.8s ease-in-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.6s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-pulse-soft {
+    animation: pulseSoft 2s infinite;
+  }
+
+  /* Card selection states */
+  .card-selected {
+    @apply ring-4 ring-[var(--color-primary)] ring-opacity-75 transform scale-105;
+  }
+
+  .card-disabled {
+    @apply opacity-50 grayscale cursor-not-allowed;
+  }
+
+  .card-hovered {
+    @apply transform -translate-y-2 shadow-game;
+  }
+
+  /* Game state utilities */
+  .game-win {
+    @apply text-game-win;
+  }
+
+  .game-lose {
+    @apply text-game-lose;
+  }
+
+  .game-draw {
+    @apply text-game-draw;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Mobile-first card fan layout */
+  .card-fan {
+    @apply flex justify-center items-end;
+  }
+
+  .card-fan-user {
+    @apply fixed bottom-4 left-1/2 transform -translate-x-1/2 z-20;
+    perspective: 1000px;
+  }
+
+  .card-fan-opponent {
+    @apply flex justify-center items-center;
+    perspective: 800px;
+  }
+
+  .card-fan-item {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-fan-item:not(:first-child) {
+    margin-left: -1.5rem;
+  }
+
+  .card-fan-item-user:not(:first-child) {
+    margin-left: -2.5rem;
+  }
+
+  .card-fan-item-user {
+    @apply transform-gpu transition-all duration-300;
+  }
+
+  .card-fan-item-user:hover {
+    @apply -translate-y-4 z-10;
+  }
+
+  /* Responsive text sizing for mobile-first */
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-base {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl md:text-3xl;
+  }
+}

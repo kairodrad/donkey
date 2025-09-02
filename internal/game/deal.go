@@ -5,37 +5,9 @@ import (
 	"github.com/kairodrad/donkey/internal/model"
 )
 
-// DealCards shuffles the deck and deals all cards to the players in the game.
+// DealCards is deprecated - use GameManager.StartGame() instead
 func DealCards(game *model.Game) error {
-	deck := Deck()
-	Shuffle(deck)
-
-	var players []model.GamePlayer
-	if err := db.DB.Where("game_id = ?", game.ID).Order("join_order asc").Find(&players).Error; err != nil {
-		return err
-	}
-	if len(players) == 0 {
-		return nil
-	}
-
-	ids := make([]string, len(players))
-	requesterIdx := 0
-	for i, p := range players {
-		ids[i] = p.UserID
-		if p.UserID == game.RequesterID {
-			requesterIdx = i
-		}
-	}
-
-	idx := (requesterIdx + 1) % len(ids)
-	for _, card := range deck {
-		gc := model.GameCard{ID: model.NewID(), GameID: game.ID, UserID: ids[idx], Code: string(card)}
-		if err := db.DB.Create(&gc).Error; err != nil {
-			return err
-		}
-		idx = (idx + 1) % len(ids)
-	}
-	return nil
+	return nil // No-op for backward compatibility
 }
 
 // PlayerState represents what the UI needs to render for a player.
@@ -51,8 +23,7 @@ type StateResponse struct {
 	GameID      string        `json:"gameId"`
 	RequesterID string        `json:"requesterId"`
 	Players     []PlayerState `json:"players"`
-	HasStarted  bool          `json:"hasStarted"`
-	IsAbandoned bool          `json:"isAbandoned"`
+	Status      string        `json:"status"`
 }
 
 // BuildState builds a StateResponse for a given game and user.
@@ -62,21 +33,43 @@ func BuildState(gameID, userID string) (StateResponse, error) {
 		return StateResponse{}, err
 	}
 	var players []model.GamePlayer
-	if err := db.DB.Preload("User").Preload("Cards").Where("game_id = ?", gameID).Order("join_order asc").Find(&players).Error; err != nil {
+	if err := db.DB.Preload("User").Where("game_id = ?", gameID).Order("join_order asc").Find(&players).Error; err != nil {
 		return StateResponse{}, err
 	}
 
-	resp := StateResponse{GameID: game.ID, RequesterID: game.RequesterID, HasStarted: game.HasStarted, IsAbandoned: game.IsAbandoned}
+	resp := StateResponse{GameID: game.ID, RequesterID: game.RequesterID, Status: game.Status}
+
+	// Get current round if game is active
+	var currentRoundID string
+	if game.Status == "active" {
+		var round model.Round
+		if err := db.DB.Where("game_id = ? AND status IN ('dealing', 'active')", gameID).
+			Order("round_number DESC").First(&round).Error; err == nil {
+			currentRoundID = round.ID
+		}
+	}
 
 	for _, p := range players {
 		ps := PlayerState{ID: p.UserID, Name: p.User.Name}
-		if game.HasStarted {
+		
+		if game.Status == "active" && currentRoundID != "" {
 			if p.UserID == userID {
-				for _, c := range p.Cards {
-					ps.Cards = append(ps.Cards, c.Code)
+				// Get user's cards from current round
+				var userCards []model.Card
+				if err := db.DB.Where("round_id = ? AND owner_id = ? AND location = 'hand'", currentRoundID, userID).
+					Order("sort_order").Find(&userCards).Error; err == nil {
+					for _, c := range userCards {
+						ps.Cards = append(ps.Cards, c.CardCode())
+					}
 				}
 			} else {
-				ps.CardCount = len(p.Cards)
+				// Count other player's cards
+				var cardCount int64
+				if err := db.DB.Model(&model.Card{}).
+					Where("round_id = ? AND owner_id = ? AND location = 'hand'", currentRoundID, p.UserID).
+					Count(&cardCount).Error; err == nil {
+					ps.CardCount = int(cardCount)
+				}
 			}
 		}
 		resp.Players = append(resp.Players, ps)
@@ -91,18 +84,37 @@ func BuildAdminState(gameID string) (StateResponse, error) {
 		return StateResponse{}, err
 	}
 	var players []model.GamePlayer
-	if err := db.DB.Preload("User").Preload("Cards").Where("game_id = ?", gameID).Order("join_order asc").Find(&players).Error; err != nil {
+	if err := db.DB.Preload("User").Where("game_id = ?", gameID).Order("join_order asc").Find(&players).Error; err != nil {
 		return StateResponse{}, err
 	}
 
-	resp := StateResponse{GameID: game.ID, RequesterID: game.RequesterID, HasStarted: game.HasStarted, IsAbandoned: game.IsAbandoned}
+	resp := StateResponse{GameID: game.ID, RequesterID: game.RequesterID, Status: game.Status}
+
+	// Get current round if game is active
+	var currentRoundID string
+	if game.Status == "active" {
+		var round model.Round
+		if err := db.DB.Where("game_id = ? AND status IN ('dealing', 'active')", gameID).
+			Order("round_number DESC").First(&round).Error; err == nil {
+			currentRoundID = round.ID
+		}
+	}
+
 	for _, p := range players {
 		ps := PlayerState{ID: p.UserID, Name: p.User.Name}
-		for _, c := range p.Cards {
-			ps.Cards = append(ps.Cards, c.Code)
-		}
-		if len(ps.Cards) == 0 {
-			ps.CardCount = len(p.Cards)
+		
+		if game.Status == "active" && currentRoundID != "" {
+			// Get all player's cards for admin view
+			var playerCards []model.Card
+			if err := db.DB.Where("round_id = ? AND owner_id = ? AND location = 'hand'", currentRoundID, p.UserID).
+				Order("sort_order").Find(&playerCards).Error; err == nil {
+				for _, c := range playerCards {
+					ps.Cards = append(ps.Cards, c.CardCode())
+				}
+				if len(ps.Cards) == 0 {
+					ps.CardCount = len(playerCards)
+				}
+			}
 		}
 		resp.Players = append(resp.Players, ps)
 	}

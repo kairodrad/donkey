@@ -63,13 +63,49 @@ func (br *broker) publish(gameID string, ev event) {
 }
 
 func logAndSend(gameID, userID, typ, message string) {
-	entry := model.GameSessionLog{ID: model.NewID(), GameID: gameID, UserID: userID, Type: typ, Message: message, CreatedAt: time.Now()}
+	var userIDPtr *string
+	if userID != "" {
+		userIDPtr = &userID
+	}
+	entry := model.GameSessionLog{ID: model.NewID(), GameID: gameID, UserID: userIDPtr, Type: typ, Message: message, CreatedAt: time.Now()}
 	db.DB.Create(&entry)
 	b.publish(gameID, event{Type: "log", Log: &entry})
 }
 
 func publishState(gameID string) {
 	b.publish(gameID, event{Type: "state"})
+}
+
+// PublishState is a public wrapper for publishState (used by game manager)
+func PublishState(gameID string) {
+	publishState(gameID)
+}
+
+// PublishLog publishes a structured log event with eventData (used by game manager)
+func PublishLog(gameID, userID, logType, message string, eventData interface{}) {
+	var userIDPtr *string
+	if userID != "" {
+		userIDPtr = &userID
+	}
+	
+	entry := model.GameSessionLog{
+		ID:        model.NewID(), 
+		GameID:    gameID, 
+		UserID:    userIDPtr, 
+		Type:      logType, 
+		Message:   message, 
+		CreatedAt: time.Now(),
+	}
+	
+	// Add structured eventData if provided
+	if eventData != nil {
+		if b, err := json.Marshal(eventData); err == nil {
+			entry.EventData = string(b)
+		}
+	}
+	
+	db.DB.Create(&entry)
+	b.publish(gameID, event{Type: "log", Log: &entry})
 }
 
 // StreamHandler provides a long-lived stream of events for a game.
@@ -113,7 +149,7 @@ func StreamHandler(c *gin.Context) {
 	db.DB.Model(&model.GamePlayer{}).Where("game_id = ? AND user_id = ?", gameID, userID).Update("is_connected", false)
 	logAndSend(gameID, userID, "status", user.Name+": disconnected from the game")
 	if gameModel.RequesterID == userID {
-		db.DB.Model(&model.Game{}).Where("id = ?", gameID).Update("is_abandoned", true)
+		db.DB.Model(&model.Game{}).Where("id = ?", gameID).Update("status", "abandoned")
 		logAndSend(gameID, userID, "status", "Game was terminated because the creator disconnected")
 		publishState(gameID)
 	}
@@ -166,8 +202,8 @@ func LogsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, logs)
 }
 
-// AbandonHandler abandons a game.
-func AbandonHandler(c *gin.Context) {
+// LegacyAbandonHandler is the old abandon handler (deprecated, use AbandonGameHandler in game.go)
+func LegacyAbandonHandler(c *gin.Context) {
 	var req struct {
 		GameID string `json:"gameId"`
 		UserID string `json:"userId"`
@@ -185,7 +221,9 @@ func AbandonHandler(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only requester can abandon"})
 		return
 	}
-	gameModel.IsAbandoned = true
+	gameModel.Status = "abandoned"
+	now := time.Now()
+	gameModel.CompletedAt = &now
 	db.DB.Save(&gameModel)
 	var user model.User
 	db.DB.First(&user, "id = ?", req.UserID)

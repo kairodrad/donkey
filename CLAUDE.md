@@ -15,6 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 go run ./cmd/server
 ```
 
+**IMPORTANT:** Do not start or stop servers automatically. Always ask the user to start/stop servers when needed.
+
 **Run tests:**
 ```bash
 go test ./...
