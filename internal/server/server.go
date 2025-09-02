@@ -3,6 +3,8 @@ package server
 import (
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/kairodrad/donkey/docs" // swagger docs
@@ -26,12 +28,21 @@ func New() *gin.Engine {
 
 	r := gin.Default()
 	r.Use(logRequests())
-	// Serve static assets for both development and production
-	r.Static("/assets", "./dist/assets")           // Vue.js build assets (production)
-	r.Static("/web/assets", "./web/assets")        // Game assets (card images, icons)
-	r.StaticFile("/favicon.ico", "./web/assets/favicon.ico")
-	r.StaticFile("/apple-touch-icon.png", "./web/assets/apple-touch-icon.png")
-	r.StaticFile("/apple-touch-icon-precomposed.png", "./web/assets/apple-touch-icon.png")
+	
+	// Environment detection
+	isDev := os.Getenv("NODE_ENV") != "production"
+	
+	// Static file serving - works for both dev and production
+	// Always serve game assets from /web/assets (consistent path)
+	r.Static("/web/assets", "./web/assets")
+	
+	// In production, also serve built Vue.js assets
+	if !isDev {
+		r.Static("/assets", "./dist/assets")
+		r.StaticFile("/favicon.ico", "./dist/assets/favicon-92640d13.ico")
+		r.StaticFile("/apple-touch-icon.png", "./dist/assets/apple-touch-icon-71cd5b1a.png")
+		r.StaticFile("/apple-touch-icon-precomposed.png", "./dist/assets/apple-touch-icon-71cd5b1a.png")
+	}
 
 	apiGroup := r.Group("/api")
 	{
@@ -63,15 +74,34 @@ func New() *gin.Engine {
 		apiGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
-	// Serve Vue.js app
-	r.GET("/", func(c *gin.Context) {
-		c.File("./dist/index.html")
-	})
-	
-	// Fallback for SPA routing
-	r.NoRoute(func(c *gin.Context) {
-		c.File("./dist/index.html")
-	})
+	// Serve Vue.js app (only in production - dev uses Vite server)
+	if !isDev {
+		r.GET("/", func(c *gin.Context) {
+			c.File("./dist/index.html")
+		})
+		
+		// SPA fallback for production
+		r.NoRoute(func(c *gin.Context) {
+			// Don't serve SPA for API routes
+			if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+				c.JSON(http.StatusNotFound, gin.H{"error": "API endpoint not found"})
+				return
+			}
+			
+			// Serve Vue.js app for client-side routing
+			c.File("./dist/index.html")
+		})
+	} else {
+		// In development, return a simple message for root
+		r.GET("/", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"message": "Donkey API Server (Development Mode)",
+				"frontend": "Run 'npm run dev' for Vue.js development server",
+				"api": "/api/*",
+				"assets": "/web/assets/*",
+			})
+		})
+	}
 
 	return r
 }
