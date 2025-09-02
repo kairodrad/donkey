@@ -29,8 +29,15 @@ func New() *gin.Engine {
 	r := gin.Default()
 	r.Use(logRequests())
 	
-	// Environment detection
+	// Environment detection - default to production if dist/index.html exists
 	isDev := os.Getenv("NODE_ENV") != "production"
+	
+	// Override: if dist/index.html exists and NODE_ENV is not explicitly set to dev, use production mode
+	if _, err := os.Stat("./dist/index.html"); err == nil {
+		if os.Getenv("NODE_ENV") == "" || os.Getenv("NODE_ENV") == "production" {
+			isDev = false
+		}
+	}
 	
 	// Static file serving - works for both dev and production
 	// Always serve game assets from /web/assets (consistent path)
