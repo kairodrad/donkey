@@ -43,7 +43,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Build output
-dist/
 build/
 out/
 public/build/
